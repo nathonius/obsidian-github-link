@@ -1,0 +1,16 @@
+.gh-auth-modal {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.gh-auth-code-section {
+	display: flex;
+	gap: 10px;
+	justify-content: center;
+	align-items: center;
+}
+
+.auth-code {
+	font-size: 3em;
+}
