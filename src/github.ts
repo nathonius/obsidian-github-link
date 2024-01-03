@@ -1,9 +1,11 @@
 import { RequestUrlParam, requestUrl } from "obsidian";
 
-import { GithubLinkPluginSettings } from "./settings";
 import { OnVerificationCallback } from "@octokit/auth-oauth-device/dist-types/types";
+import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 import { createOAuthDeviceAuth } from "@octokit/auth-oauth-device";
 import { request } from "@octokit/request";
+
+const baseApi = "https://api.github.com";
 
 interface ParsedUrl {
 	url: string;
@@ -21,17 +23,14 @@ interface ParsedUrl {
 
 // TODO: Clean this file up, lots of junk in here
 
-export async function githubRequest(
-	config: RequestUrlParam,
-	settings: GithubLinkPluginSettings
-) {
+export async function githubRequest(config: RequestUrlParam, token?: string) {
 	if (!config.headers) {
 		config.headers = {};
 	}
 	config.headers.Accept = "application/vnd.github+json";
 	config.headers["X-GitHub-Api-Version"] = "2022-11-28";
-	if (settings.token) {
-		config.headers.Authorization = `Bearer ${settings.token}`;
+	if (token) {
+		config.headers.Authorization = `Bearer ${token}`;
 	}
 	try {
 		const response = await requestUrl(config);
@@ -40,6 +39,50 @@ export async function githubRequest(
 		console.error(err);
 		throw err;
 	}
+}
+
+export async function getIssue(
+	org: string,
+	repo: string,
+	issue: number,
+	token?: string
+) {
+	const result = await githubRequest(
+		{ url: `${baseApi}/repos/${org}/${repo}/issues/${issue}` },
+		token
+	);
+	return result.json as RestEndpointMethodTypes["issues"]["get"]["response"]["data"];
+}
+
+export async function getPullRequest(
+	org: string,
+	repo: string,
+	pr: number,
+	token?: string
+) {
+	const result = await githubRequest(
+		{
+			url: `${baseApi}/repos/${org}/${repo}/pulls/${pr}`,
+		},
+		token
+	);
+	return result.json as RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
+}
+
+export async function getCode(
+	org: string,
+	repo: string,
+	path: string,
+	branch: string,
+	token?: string
+) {
+	const result = await githubRequest(
+		{
+			url: `${baseApi}/repos/${org}/${repo}/contents/${path}?ref=${branch}`,
+		},
+		token
+	);
+	return result.json as RestEndpointMethodTypes["repos"]["getContent"]["response"]["data"];
 }
 
 export function parseUrl(urlString: string): ParsedUrl {
