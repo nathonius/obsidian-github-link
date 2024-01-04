@@ -41,25 +41,12 @@ export async function githubRequest(config: RequestUrlParam, token?: string) {
 	}
 }
 
-export async function getIssue(
-	org: string,
-	repo: string,
-	issue: number,
-	token?: string
-) {
-	const result = await githubRequest(
-		{ url: `${baseApi}/repos/${org}/${repo}/issues/${issue}` },
-		token
-	);
+export async function getIssue(org: string, repo: string, issue: number, token?: string) {
+	const result = await githubRequest({ url: `${baseApi}/repos/${org}/${repo}/issues/${issue}` }, token);
 	return result.json as RestEndpointMethodTypes["issues"]["get"]["response"]["data"];
 }
 
-export async function getPullRequest(
-	org: string,
-	repo: string,
-	pr: number,
-	token?: string
-) {
+export async function getPullRequest(org: string, repo: string, pr: number, token?: string) {
 	const result = await githubRequest(
 		{
 			url: `${baseApi}/repos/${org}/${repo}/pulls/${pr}`,
@@ -69,13 +56,7 @@ export async function getPullRequest(
 	return result.json as RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
 }
 
-export async function getCode(
-	org: string,
-	repo: string,
-	path: string,
-	branch: string,
-	token?: string
-) {
+export async function getCode(org: string, repo: string, path: string, branch: string, token?: string) {
 	const result = await githubRequest(
 		{
 			url: `${baseApi}/repos/${org}/${repo}/contents/${path}?ref=${branch}`,
@@ -99,6 +80,7 @@ export function parseUrl(urlString: string): ParsedUrl {
 	const parsedUrl: ParsedUrl = { url: urlString, host: url.hostname };
 
 	const urlParts = url.pathname.split("/");
+	console.log(urlParts);
 	if (urlParts.length >= 4) {
 		switch (urlParts[3].toLowerCase()) {
 			case "issues":
@@ -141,18 +123,14 @@ export function parseUrl(urlString: string): ParsedUrl {
 		parsedUrl.org = urlParts[1];
 	}
 
+	console.log(parsedUrl);
 	return parsedUrl;
 }
 
-async function doFetch(
-	url: RequestInfo | URL,
-	options?: RequestInit | undefined
-): Promise<Response> {
+async function doFetch(url: RequestInfo | URL, options?: RequestInit | undefined): Promise<Response> {
 	// Octokit always uses a url + options, not a Request object
 	if (typeof url !== "string") {
-		throw new Error(
-			"Something has gone horribly wrong and fetch has received unexpected arguments."
-		);
+		throw new Error("Something has gone horribly wrong and fetch has received unexpected arguments.");
 	}
 	if (options === undefined) {
 		throw new Error("No options given to fetch.");
@@ -177,22 +155,12 @@ async function doFetch(
 		json: () => Promise.resolve(result.json),
 	} as Omit<
 		Response,
-		| "ok"
-		| "body"
-		| "statusText"
-		| "redirected"
-		| "type"
-		| "clone"
-		| "bodyUsed"
-		| "blob"
-		| "formData"
+		"ok" | "body" | "statusText" | "redirected" | "type" | "clone" | "bodyUsed" | "blob" | "formData"
 	>;
 	return partialResult as Response;
 }
 
-function getHeaders(
-	headers: HeadersInit | undefined
-): Record<string, string> | undefined {
+function getHeaders(headers: HeadersInit | undefined): Record<string, string> | undefined {
 	if (!headers) {
 		return undefined;
 	}
@@ -204,16 +172,12 @@ function getHeaders(
 		return result;
 	}
 	if (Array.isArray(headers)) {
-		throw new Error(
-			"Got array headers, we don't know what to do with this yet."
-		);
+		throw new Error("Got array headers, we don't know what to do with this yet.");
 	}
 	return headers;
 }
 
-function getBody(
-	body: BodyInit | null | undefined
-): string | ArrayBuffer | undefined {
+function getBody(body: BodyInit | null | undefined): string | ArrayBuffer | undefined {
 	if (!body) {
 		return undefined;
 	}

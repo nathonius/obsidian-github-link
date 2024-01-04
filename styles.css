@@ -14,3 +14,31 @@
 .auth-code {
 	font-size: 3em;
 }
+
+.gh-link-inline {
+	display: flex;
+	background-color: green;
+	border-radius: 4px;
+	text-decoration: none;
+	color: inherit;
+	align-items: center;
+}
+
+.gh-link-inline-icon {
+	background-color: orange;
+	border-radius: 4px;
+	display: flex;
+	padding: 2px;
+}
+
+.gh-link-inline-repo {
+	background-color: blue;
+	padding: 0 4px;
+}
+
+.gh-link-inline-pr-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-wrap: nowrap;
+	padding: 0 4px;
+}
