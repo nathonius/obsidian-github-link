@@ -41,6 +41,11 @@ export async function InlineRenderer(el: HTMLElement, ctx: MarkdownPostProcessor
 				const issue = await getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue, token);
 				if (issue.title) {
 					setIcon(icon, "square-dot");
+					if (issue.pull_request?.merged_at) {
+						icon.dataset.status = "done";
+					} else {
+						icon.dataset.status = issue.state;
+					}
 					container.createSpan({
 						cls: "gh-link-inline-issue-title",
 						text: issue.title,
@@ -51,6 +56,11 @@ export async function InlineRenderer(el: HTMLElement, ctx: MarkdownPostProcessor
 				const pull = await getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr, token);
 				if (pull.title) {
 					setIcon(icon, "git-pull-request-arrow");
+					if (pull.merged) {
+						icon.dataset.status = "done";
+					} else {
+						icon.dataset.status = pull.state;
+					}
 					container.createSpan({
 						cls: "gh-link-inline-pr-title",
 						text: pull.title,
