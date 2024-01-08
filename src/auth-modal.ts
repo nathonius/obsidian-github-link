@@ -1,9 +1,13 @@
-import { App, Modal, setIcon } from "obsidian";
+import { Modal, setIcon } from "obsidian";
 
-import { Verification } from "@octokit/auth-oauth-device/dist-types/types";
+import type { App } from "obsidian";
+import type { Verification } from "@octokit/auth-oauth-device/dist-types/types";
 
 export class AuthModal extends Modal {
-	constructor(app: App, private readonly verification: Verification) {
+	constructor(
+		app: App,
+		private readonly verification: Verification,
+	) {
 		super(app);
 	}
 	onOpen(): void {

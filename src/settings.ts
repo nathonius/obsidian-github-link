@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { App, PluginSettingTab, Setting } from "obsidian";
-import { GithubLinkPlugin, PluginSettings } from "./plugin";
+import { PluginSettingTab, Setting } from "obsidian";
 
+import type { App } from "obsidian";
 import { AuthModal } from "./auth-modal";
-import { Verification } from "@octokit/auth-oauth-device/dist-types/types";
+import type { GithubLinkPlugin } from "./plugin";
+import { PluginSettings } from "./plugin";
+import type { Verification } from "@octokit/auth-oauth-device/dist-types/types";
 import { auth } from "./github";
 
 export interface GithubAccount {
@@ -22,7 +24,10 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 	authModal: AuthModal | null = null;
 	newAccount: GithubAccount | null = null;
 
-	constructor(public app: App, private readonly plugin: GithubLinkPlugin) {
+	constructor(
+		public app: App,
+		private readonly plugin: GithubLinkPlugin,
+	) {
 		super(app, plugin);
 	}
 
@@ -89,7 +94,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			new Setting(accountContainer)
 				.setName("Orgs and users")
 				.setDesc(
-					"A comma separated list of the GitHub organizations and users this account should be used for. Optional."
+					"A comma separated list of the GitHub organizations and users this account should be used for. Optional.",
 				)
 				.addTextArea((text) => {
 					text.setValue(this.newAccount!.orgs.join(", "));
@@ -100,7 +105,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			new Setting(accountContainer)
 				.setName("Token")
 				.setDesc(
-					"A GitHub token, which can be generated automatically (recommended) or by creating a personal access token (not recommended unless org does not allow OAuth tokens). Required."
+					"A GitHub token, which can be generated automatically (recommended) or by creating a personal access token (not recommended unless org does not allow OAuth tokens). Required.",
 				)
 				.addButton((button) => {
 					button.setButtonText("Generate Token");
@@ -160,7 +165,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			new Setting(accountContainer)
 				.setName("Orgs and users")
 				.setDesc(
-					"A comma separated list of the GitHub organizations and users this account should be used for."
+					"A comma separated list of the GitHub organizations and users this account should be used for.",
 				)
 				.addTextArea((text) => {
 					text.setValue(account.orgs.join(", "));
@@ -172,7 +177,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			new Setting(accountContainer)
 				.setName("Token")
 				.setDesc(
-					"A GitHub token, which can be generated automatically (recommended) or by creating a personal access token (not recommended unless org does not allow OAuth tokens)."
+					"A GitHub token, which can be generated automatically (recommended) or by creating a personal access token (not recommended unless org does not allow OAuth tokens).",
 				)
 				.addButton((button) => {
 					button.setButtonText("Generate Token");

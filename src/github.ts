@@ -1,9 +1,9 @@
-import { RequestUrlParam, requestUrl } from "obsidian";
-
-import { OnVerificationCallback } from "@octokit/auth-oauth-device/dist-types/types";
-import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+import type { OnVerificationCallback } from "@octokit/auth-oauth-device/dist-types/types";
+import type { RequestUrlParam } from "obsidian";
+import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 import { createOAuthDeviceAuth } from "@octokit/auth-oauth-device";
 import { request } from "@octokit/request";
+import { requestUrl } from "obsidian";
 
 const baseApi = "https://api.github.com";
 
@@ -51,7 +51,7 @@ export async function getPullRequest(org: string, repo: string, pr: number, toke
 		{
 			url: `${baseApi}/repos/${org}/${repo}/pulls/${pr}`,
 		},
-		token
+		token,
 	);
 	return result.json as RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
 }
@@ -61,7 +61,7 @@ export async function getCode(org: string, repo: string, path: string, branch: s
 		{
 			url: `${baseApi}/repos/${org}/${repo}/contents/${path}?ref=${branch}`,
 		},
-		token
+		token,
 	);
 	return result.json as RestEndpointMethodTypes["repos"]["getContent"]["response"]["data"];
 }
