@@ -23,6 +23,16 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 	class InlineViewPluginValue implements PluginValue {
 		private readonly component = new Component();
 		private readonly plugin: GithubLinkPlugin;
+		private readonly match = new MatchDecorator({
+			regexp: /(https:\/\/)?github\.com[\S]+/g,
+			decoration: (match, view, pos) => {
+				const shouldRender = this.shouldRender(view, pos);
+				if (!shouldRender) {
+					return null;
+				}
+				return Decoration.replace({ widget: new InlineTagWidget(match[0]) });
+			},
+		});
 		decorations: DecorationSet = Decoration.none;
 		constructor(view: EditorView) {
 			this.plugin = plugin;
@@ -31,7 +41,7 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 		}
 
 		update(update: ViewUpdate): void {
-			this.updateDecorations(update.view);
+			this.updateDecorations(update.view, update);
 		}
 
 		destroy(): void {
@@ -39,17 +49,12 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 			this.decorations = Decoration.none;
 		}
 
-		updateDecorations(view: EditorView) {
-			this.decorations = new MatchDecorator({
-				regexp: /(https:\/\/)?github\.com[\S]+/g,
-				decoration: (match, view, pos) => {
-					const shouldRender = this.shouldRender(view, pos);
-					if (!shouldRender) {
-						return null;
-					}
-					return Decoration.replace({ widget: new InlineTagWidget(match[0]) });
-				},
-			}).createDeco(view);
+		updateDecorations(view: EditorView, update?: ViewUpdate) {
+			if (!update || this.decorations.size === 0) {
+				this.decorations = this.match.createDeco(view);
+			} else {
+				this.match.updateDeco(update, this.decorations);
+			}
 		}
 
 		isLivePreview(state: EditorView["state"]): boolean {
@@ -59,7 +64,7 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 		shouldRender(view: EditorView, pos: number) {
 			const selection = view.state.selection;
 			const isLivePreview = this.isLivePreview(view.state);
-			const cursorOverlap = selection.ranges.some((range) => valueWithin(pos, range.from, range.to));
+			const cursorOverlap = selection.ranges.some((range) => valueWithin(pos, range.from - 1, range.to + 1));
 			return isLivePreview && !cursorOverlap;
 		}
 	}
