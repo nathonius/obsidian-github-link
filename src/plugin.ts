@@ -3,7 +3,7 @@ import { GithubLinkPluginSettingsTab } from "./settings";
 import { InlineRenderer } from "./inline/inline";
 import { Plugin } from "obsidian";
 import { createInlineViewPlugin } from "./inline/view-plugin";
-import { getIssue } from "./github";
+import { getIssue } from "./github/github";
 
 export let PluginSettings: GithubLinkPluginSettings = { accounts: [] };
 

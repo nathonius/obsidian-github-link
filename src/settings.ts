@@ -6,7 +6,7 @@ import { AuthModal } from "./auth-modal";
 import type { GithubLinkPlugin } from "./plugin";
 import { PluginSettings } from "./plugin";
 import type { Verification } from "@octokit/auth-oauth-device/dist-types/types";
-import { auth } from "./github";
+import { auth } from "./github/auth";
 
 export interface GithubAccount {
 	id: string;

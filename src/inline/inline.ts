@@ -1,6 +1,7 @@
-import { getIssue, getPullRequest, parseUrl } from "../github";
+import { getIssue, getPullRequest } from "../github/github";
 
 import { PluginSettings } from "../plugin";
+import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
 
 // TODO: Split some of this out, there's no reason I should be getting the token when creating this element
