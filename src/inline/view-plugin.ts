@@ -1,4 +1,4 @@
-import { Component, editorLivePreviewField } from "obsidian";
+import { editorLivePreviewField } from "obsidian";
 import { Decoration, MatchDecorator, ViewPlugin, WidgetType } from "@codemirror/view";
 import type { DecorationSet, EditorView, PluginSpec, PluginValue, ViewUpdate } from "@codemirror/view";
 
@@ -12,7 +12,10 @@ interface DecoSpec {
 class InlineTagWidget extends WidgetType {
 	public error = false;
 	private container: HTMLElement = createSpan();
-	constructor(href: string, dispatch: () => void) {
+	constructor(
+		public readonly href: string,
+		dispatch: () => void,
+	) {
 		super();
 		createTag(href)
 			.then((tag) => {
@@ -24,16 +27,19 @@ class InlineTagWidget extends WidgetType {
 				dispatch(); // Force an update of decorations
 			});
 	}
+
+	eq(widget: WidgetType): boolean {
+		return (widget as InlineTagWidget).href === this.href;
+	}
+
 	toDOM(): HTMLElement {
 		return this.container;
 	}
 }
 
-export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
+export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 	class InlineViewPluginValue implements PluginValue {
 		public readonly view: EditorView;
-		private readonly component = new Component();
-		private readonly plugin: GithubLinkPlugin;
 		private readonly match = new MatchDecorator({
 			regexp: /(https:\/\/)?github\.com[\S]+/g,
 			decorate: (add, from, to, match, view) => {
@@ -52,8 +58,6 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 		decorations: DecorationSet = Decoration.none;
 		constructor(view: EditorView) {
 			this.view = view;
-			this.plugin = plugin;
-			this.component.load();
 			this.updateDecorations(view);
 		}
 
@@ -62,7 +66,6 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 		}
 
 		destroy(): void {
-			this.component.unload();
 			this.decorations = Decoration.none;
 		}
 
@@ -98,6 +101,7 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 				filter: (rangeFrom, rangeTo, deco) => {
 					const widget = (deco.spec as DecoSpec).widget;
 					if (widget && widget.error) {
+						console.log("GOT WIDGET ERROR");
 						return false;
 					}
 					// Check if the range is collapsed (cursor position)
