@@ -1,41 +1,36 @@
 import { getIssue, getPullRequest } from "../github/github";
 
-import { PluginSettings } from "../plugin";
 import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
 
-// TODO: Split some of this out, there's no reason I should be getting the token when creating this element
 export async function createTag(href: string) {
 	const parsedUrl = parseUrl(href);
+	const container = createEl("a", { cls: "gh-link-inline-tag", href });
 
-	let token: string | undefined;
-	// Try and find the matching token
-	if (parsedUrl.org) {
-		let account = PluginSettings.accounts.find((acc) => acc.orgs.some((org) => org === parsedUrl.org));
-		// Fall back to default token if available
-		if (!account && PluginSettings.defaultAccount) {
-			account = PluginSettings.accounts.find((acc) => acc.id === PluginSettings.defaultAccount);
-		}
-		token = account?.token;
-	}
+	// Add icon
+	const icon = createTagSection(container).createSpan({ cls: "gh-link-inline-tag-icon" });
+	setIcon(icon, "github");
 
-	const container = createEl("a", { cls: "gh-link-inline", href });
-	const icon = container.createSpan({ cls: "gh-link-inline-icon" });
-	setIcon(icon, "github"); // TODO: Set correct icon
+	// Add repo
 	if (parsedUrl.repo) {
-		container.createSpan({
-			cls: "gh-link-inline-repo",
+		createTagSection(container).createSpan({
+			cls: "gh-link-inline-tag-repo",
 			text: parsedUrl.repo,
 		});
-	} else if (parsedUrl.org) {
-		container.createSpan({
-			cls: "gh-link-inline-org",
+	}
+
+	// fall back to org if no repo found
+	else if (parsedUrl.org) {
+		createTagSection(container).createSpan({
+			cls: "gh-link-inline-tag-org",
 			text: parsedUrl.org,
 		});
 	}
+
 	if (parsedUrl.repo && parsedUrl.org) {
+		// Get issue info
 		if (parsedUrl.issue !== undefined) {
-			const issue = await getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue, token);
+			const issue = await getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue);
 			if (issue.title) {
 				setIcon(icon, "square-dot");
 				if (issue.pull_request?.merged_at) {
@@ -43,14 +38,16 @@ export async function createTag(href: string) {
 				} else {
 					icon.dataset.status = issue.state;
 				}
-				container.createSpan({
-					cls: "gh-link-inline-issue-title",
+				createTagSection(container).createSpan({
+					cls: "gh-link-inline-tag-issue-title",
 					text: issue.title,
 				});
 			}
 		}
+
+		// Get PR info
 		if (parsedUrl.pr !== undefined) {
-			const pull = await getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr, token);
+			const pull = await getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr);
 			if (pull.title) {
 				setIcon(icon, "git-pull-request-arrow");
 				if (pull.merged) {
@@ -58,8 +55,8 @@ export async function createTag(href: string) {
 				} else {
 					icon.dataset.status = pull.state;
 				}
-				container.createSpan({
-					cls: "gh-link-inline-pr-title",
+				createTagSection(container).createSpan({
+					cls: "gh-link-inline-tag-pr-title",
 					text: pull.title,
 				});
 			}
@@ -67,6 +64,10 @@ export async function createTag(href: string) {
 		// TODO: add support for other stuff here
 	}
 	return container;
+}
+
+function createTagSection(parent: HTMLElement): HTMLElement {
+	return parent.createDiv({ cls: "gh-link-inline-tag-section" });
 }
 
 export async function InlineRenderer(el: HTMLElement) {

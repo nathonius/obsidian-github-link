@@ -5,13 +5,24 @@ import type { DecorationSet, EditorView, PluginSpec, PluginValue, ViewUpdate } f
 import type { GithubLinkPlugin } from "../plugin";
 import { createTag } from "./inline";
 
+interface DecoSpec {
+	widget?: InlineTagWidget;
+}
+
 class InlineTagWidget extends WidgetType {
+	public error = false;
 	private container: HTMLElement = createSpan();
-	constructor(href: string) {
+	constructor(href: string, dispatch: () => void) {
 		super();
-		createTag(href).then((tag) => {
-			this.container.appendChild(tag);
-		});
+		createTag(href)
+			.then((tag) => {
+				this.container.appendChild(tag);
+			})
+			.catch((err) => {
+				console.error(err);
+				this.error = true;
+				dispatch(); // Force an update of decorations
+			});
 	}
 	toDOM(): HTMLElement {
 		return this.container;
@@ -25,12 +36,17 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 		private readonly plugin: GithubLinkPlugin;
 		private readonly match = new MatchDecorator({
 			regexp: /(https:\/\/)?github\.com[\S]+/g,
-			decoration: (match, view) => {
-				const shouldRender = this.shouldRender(view);
-				if (!shouldRender) {
-					return null;
+			decorate: (add, from, to, match, view) => {
+				const shouldRender = this.shouldRender(view, from, to);
+				if (shouldRender) {
+					add(
+						from,
+						to,
+						Decoration.replace({
+							widget: new InlineTagWidget(match[0], view.dispatch),
+						}),
+					);
 				}
-				return Decoration.replace({ widget: new InlineTagWidget(match[0]) });
 			},
 		});
 		decorations: DecorationSet = Decoration.none;
@@ -62,8 +78,15 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 			return state.field(editorLivePreviewField);
 		}
 
-		shouldRender(view: EditorView) {
-			return this.isLivePreview(view.state);
+		shouldRender(view: EditorView, decorationFrom: number, decorationTo: number) {
+			const overlap = view.state.selection.ranges.some((r) => {
+				if (r.from <= decorationFrom) {
+					return r.to >= decorationFrom;
+				} else {
+					return r.from <= decorationTo;
+				}
+			});
+			return !overlap && this.isLivePreview(view.state);
 		}
 	}
 
@@ -72,22 +95,29 @@ export function createInlineViewPlugin(plugin: GithubLinkPlugin) {
 			// Update and return decorations for the CodeMirror view
 
 			return plugin.decorations.update({
-				filter: (rangeFrom, rangeTo) =>
+				filter: (rangeFrom, rangeTo, deco) => {
+					const widget = (deco.spec as DecoSpec).widget;
+					if (widget && widget.error) {
+						return false;
+					}
 					// Check if the range is collapsed (cursor position)
-					rangeFrom === rangeTo ||
-					// Check if there are no overlapping selection ranges
-					!plugin.view.state.selection.ranges.filter((selectionRange) => {
-						// Determine the start and end positions of the selection range
-						const selectionStart = selectionRange.from;
-						const selectionEnd = selectionRange.to;
+					return (
+						rangeFrom === rangeTo ||
+						// Check if there are no overlapping selection ranges
+						!plugin.view.state.selection.ranges.filter((selectionRange) => {
+							// Determine the start and end positions of the selection range
+							const selectionStart = selectionRange.from;
+							const selectionEnd = selectionRange.to;
 
-						// Check if the selection range overlaps with the specified range
-						if (selectionStart < rangeFrom) {
-							return selectionEnd > rangeFrom; // Overlapping condition
-						} else {
-							return selectionStart < rangeTo; // Overlapping condition
-						}
-					}).length,
+							// Check if the selection range overlaps with the specified range
+							if (selectionStart <= rangeFrom) {
+								return selectionEnd >= rangeFrom; // Overlapping condition
+							} else {
+								return selectionStart <= rangeTo; // Overlapping condition
+							}
+						}).length
+					);
+				},
 			});
 		},
 	};

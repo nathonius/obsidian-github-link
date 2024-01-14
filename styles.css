@@ -146,9 +146,8 @@ body.theme-dark {
 	font-size: 3em;
 }
 
-.gh-link-inline {
+.gh-link-inline-tag {
 	display: inline-flex;
-	line-height: 1em;
 	background-color: var(--gh-color-canvas-default);
 	border-radius: 4px;
 	border: 1px solid var(--gh-color-border-default);
@@ -158,47 +157,62 @@ body.theme-dark {
 	max-width: 100%;
 }
 
-.gh-link-inline:hover {
+.gh-link-inline-tag:hover {
 	color: var(--gh-color-fg-default);
 	text-decoration: none;
 }
 
-.gh-link-inline-icon {
-	background-color: var(--gh-color-canvas-inset);
-	display: block;
+.gh-link-inline-tag-section {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 6px;
+	overflow: hidden;
+}
+
+.gh-link-inline-tag-icon {
+	display: inline-flex;
 	padding: 4px;
 }
 
-.gh-link-inline-icon[data-status="open"] {
+.gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon) {
+	background-color: var(--gh-color-canvas-inset);
+}
+
+.gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon[data-status="open"]) {
 	background-color: var(--gh-color-open-subtle);
 	color: var(--gh-color-open-fg);
 	border-color: var(--gh-color-open-emphasis);
 }
 
-.gh-link-inline-icon[data-status="closed"] {
+.gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon[data-status="closed"]) {
 	background-color: var(--gh-color-closed-subtle);
 	color: var(--gh-color-closed-fg);
 	border-color: var(--gh-color-closed-emphasis);
 }
 
-.gh-link-inline-icon[data-status="done"] {
+.gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon[data-status="done"]) {
 	background-color: var(--gh-color-done-subtle);
 	color: var(--gh-color-done-fg);
 	border-color: var(--gh-color-done-emphasis);
 }
 
-.gh-link-inline-repo {
-	padding: 0 6px;
-	line-height: var(--line-height-normal);
+.gh-link-inline-tag-section:has(> .gh-link-inline-tag-repo) {
 	background-color: var(--gh-color-accent-subtle);
 	color: var(--gh-color-accent-fg);
 	border-color: var(--gh-color-accent-emphasis);
+	flex-shrink: 0;
 }
 
-.gh-link-inline-pr-title {
+.gh-link-inline-tag-repo {
+	text-wrap: nowrap;
+	line-height: var(--line-height-normal);
+}
+
+.gh-link-inline-tag-pr-title,
+.gh-link-inline-tag-issue-title {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	text-wrap: nowrap;
-	padding: 0 4px;
 	line-height: var(--line-height-normal);
 }
