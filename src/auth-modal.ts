@@ -15,7 +15,7 @@ export class AuthModal extends Modal {
 		this.contentEl.empty();
 		const wrapper = this.contentEl.createDiv({ cls: "gh-auth-modal" });
 		wrapper.createEl("p", {
-			text: "Copy the following code and paste it at the github link below.",
+			text: "Copy the following code and paste it at the GitHub link below.",
 		});
 		const codeEl = wrapper.createDiv({
 			cls: "gh-auth-code-section",
