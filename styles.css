@@ -155,6 +155,7 @@ body.theme-dark {
 	color: var(--gh-color-fg-default);
 	align-items: stretch;
 	max-width: 100%;
+	font-size: 0.75em;
 }
 
 .gh-link-inline-tag:hover {
@@ -166,13 +167,19 @@ body.theme-dark {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 0 6px;
+	padding: 0 5px;
 	overflow: hidden;
 }
 
 .gh-link-inline-tag-icon {
 	display: inline-flex;
-	padding: 4px;
+	padding: 2px 0;
+}
+
+.gh-link-inline-tag-icon > svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+	stroke-width: var(--icon-s-stroke-width);
 }
 
 .gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon) {
