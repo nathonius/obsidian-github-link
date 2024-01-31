@@ -3,9 +3,8 @@
 	"name": "GitHub Link",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
+	"description": "Enrich your notes with content from GitHub REST API",
 	"author": "Nathonius",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"authorUrl": "https://nathan-smith.org/",
 	"isDesktopOnly": false
 }
