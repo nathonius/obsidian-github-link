@@ -1,4 +1,4 @@
-import type { IssueResponse, PullResponse } from "./response";
+import type { IssueResponse, PullResponse, SearchIssueResponse, SearchRepoResponse } from "./response";
 
 class CacheEntry<T> {
 	constructor(
@@ -14,6 +14,11 @@ class CacheEntry<T> {
 	}
 }
 
+class QueryCache {
+	public readonly issueCache: Record<string, CacheEntry<SearchIssueResponse>> = {};
+	public readonly repoCache: Record<string, CacheEntry<SearchRepoResponse>> = {};
+}
+
 class RepoCache {
 	public readonly issueCache: Record<number, CacheEntry<IssueResponse>> = {};
 	public readonly pullCache: Record<string, CacheEntry<PullResponse>> = {};
@@ -25,6 +30,7 @@ class OrgCache {
 
 export class Cache {
 	public readonly orgs: Record<string, OrgCache> = {};
+	public readonly queries = new QueryCache();
 
 	getIssue(org: string, repo: string, issue: number): IssueResponse | null {
 		const repoCache = this.getRepoCache(org, repo);
@@ -58,6 +64,22 @@ export class Cache {
 		} else {
 			pullCache[pullRequest.id] = new CacheEntry<PullResponse>(pullRequest);
 		}
+	}
+
+	getIssueQuery(query: string): SearchIssueResponse | null {
+		return this.getCacheValue(this.queries.issueCache[query] ?? null);
+	}
+
+	setIssueQuery(query: string, result: SearchIssueResponse): void {
+		this.queries.issueCache[query] = new CacheEntry<SearchIssueResponse>(result);
+	}
+
+	getRepoQuery(query: string): SearchRepoResponse | null {
+		return this.getCacheValue(this.queries.repoCache[query] ?? null);
+	}
+
+	setRepoQuery(query: string, result: SearchRepoResponse): void {
+		this.queries.repoCache[query] = new CacheEntry<SearchRepoResponse>(result);
 	}
 
 	private getRepoCache(org: string, repo: string) {

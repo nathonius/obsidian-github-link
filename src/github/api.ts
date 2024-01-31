@@ -1,4 +1,4 @@
-import type { CodeResponse, IssueResponse, PullResponse } from "./response";
+import type { CodeResponse, IssueResponse, PullResponse, SearchIssueResponse, SearchRepoResponse } from "./response";
 
 import type { RequestUrlParam } from "obsidian";
 import { requestUrl } from "obsidian";
@@ -48,8 +48,20 @@ async function getCode(org: string, repo: string, path: string, branch: string, 
 	return result.json as CodeResponse;
 }
 
+async function searchRepos(query: string, token?: string): Promise<SearchRepoResponse> {
+	const result = await githubRequest({ url: `${baseApi}/search/repositories?q=${encodeURIComponent(query)}` }, token);
+	return result.json as SearchRepoResponse;
+}
+
+async function searchIssues(query: string, token?: string): Promise<SearchIssueResponse> {
+	const result = await githubRequest({ url: `${baseApi}/search/issues?q=${encodeURIComponent(query)}` }, token);
+	return result.json as SearchIssueResponse;
+}
+
 export const api = {
 	getIssue,
 	getPullRequest,
 	getCode,
+	searchIssues,
+	searchRepos,
 };
