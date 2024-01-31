@@ -1,5 +1,31 @@
+export function titleCase(value: string): string {
+	const words = value.split(/[-_]/);
+	return words.map((w) => w.charAt(0)?.toUpperCase() + w.slice(1)).join(" ");
+}
+
 export function valueWithin(value: number, min: number, max: number) {
 	return value >= min && value <= max;
+}
+
+/**
+ * Attempts to handle getting a nested property using a string of js object notation
+ */
+export function getProp<T extends { [key: string]: unknown }>(value: T, prop: string): unknown | null {
+	if (!prop.includes(".")) {
+		return value[prop] ?? null;
+	}
+
+	const parts = prop.split(".");
+	let val: T = value;
+	for (const part of parts) {
+		try {
+			val = val[part] as T;
+		} catch (err) {
+			return null;
+		}
+	}
+
+	return val ?? null;
 }
 
 export function safeJSONParse<T>(value: string, props: Record<keyof T, boolean>): T | null {
