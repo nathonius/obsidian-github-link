@@ -1,28 +1,45 @@
 import type { SearchIssueResponse, SearchRepoResponse } from "src/github/response";
 import { getProp, titleCase } from "src/util";
 
-import type { TableParams } from "./params";
+import { QueryType, type TableParams } from "./params";
+import { PullRequestColumns } from "./column/pull-request";
+import { IssueColumns } from "./column/issue";
+import { RepoColumns } from "./column/repo";
 
-export function renderTable<T extends SearchIssueResponse | SearchRepoResponse>(
+const columns = {
+	[QueryType.PullRequest]: PullRequestColumns,
+	[QueryType.Issue]: IssueColumns,
+	[QueryType.Repo]: RepoColumns,
+};
+
+export async function renderTable<T extends SearchIssueResponse | SearchRepoResponse>(
 	params: TableParams,
 	result: T,
 	el: HTMLElement,
 ) {
-	const table = el.createEl("table", { cls: "github-link-query-table" });
+	const table = el.createEl("table", { cls: "github-link-table" });
 	const thead = table.createEl("thead");
 	for (const col of params.columns) {
-		thead.createEl("th", { text: titleCase(col) });
+		const th = thead.createEl("th");
+		// Get predefined header if available
+		th.setText(columns[params.queryType][col]?.header ?? titleCase(col));
 	}
 	const tbody = table.createEl("tbody");
 	for (const row of result.items) {
 		const tr = tbody.createEl("tr");
 		for (const col of params.columns) {
 			const cell = tr.createEl("td");
-			const cellVal = getProp(row, col);
-			if (cellVal !== null) {
-				cell.setText(typeof cellVal === "string" ? cellVal : JSON.stringify(cellVal));
+			const renderer = columns[params.queryType][col];
+			if (renderer) {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				renderer.cell(row as any, cell);
 			} else {
-				cell.setText("");
+				const cellVal = getProp(row, col);
+				if (cellVal !== null) {
+					cell.setText(typeof cellVal === "string" ? cellVal : JSON.stringify(cellVal));
+				} else {
+					cell.setText("");
+				}
 			}
 		}
 	}
