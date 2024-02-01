@@ -12,6 +12,12 @@ export interface ParsedUrl {
 	commit?: string;
 }
 
+const apiRegex = /(https:\/\/)?api\.github\.com\/repos\//;
+
+export function repoAPIToBrowserUrl(urlString: string): string {
+	return urlString.replace(apiRegex, "https://github.com/");
+}
+
 export function parseUrl(urlString: string): ParsedUrl {
 	// Some potential URLs:
 	// https://github.com/nathonius/alloy-theme
