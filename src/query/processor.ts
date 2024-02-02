@@ -1,8 +1,7 @@
 import { type MarkdownPostProcessorContext } from "obsidian";
-import { isTableParams, processParams } from "./params";
-import samplePRResponse from "./samplePRResponse";
+import { isPullRequestParams, isTableParams, processParams } from "./params";
 import { renderTable } from "./output";
-import type { SearchIssueResponse } from "src/github/response";
+import { searchIssues } from "src/github/github";
 
 export async function QueryProcessor(
 	source: string,
@@ -17,9 +16,10 @@ export async function QueryProcessor(
 		return;
 	}
 
-	// TODO: Get result
-
 	if (isTableParams(params)) {
-		renderTable(params, samplePRResponse as SearchIssueResponse, el);
+		if (isPullRequestParams(params)) {
+			const response = await searchIssues(params.query);
+			renderTable(params, response, el);
+		}
 	}
 }
