@@ -49,3 +49,18 @@ export function safeJSONParse<T>(value: string, props: Record<keyof T, boolean>)
 
 	return result as T;
 }
+
+// Reference for more formats: https://github.com/moment/luxon/blob/master/src/impl/formats.js
+const n = "numeric";
+// eslint-disable-next-line unused-imports/no-unused-vars
+const s = "short";
+// eslint-disable-next-line unused-imports/no-unused-vars
+const l = "long";
+
+export const DateFormat = {
+	DATE_SHORT: new Intl.DateTimeFormat(undefined, {
+		year: n,
+		month: n,
+		day: n,
+	}),
+};
