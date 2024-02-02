@@ -146,7 +146,7 @@ body.theme-dark {
 	font-size: 3em;
 }
 
-.gh-link-inline-tag {
+.github-link-inline {
 	display: inline-flex;
 	background-color: var(--gh-color-canvas-default);
 	border-radius: 4px;
@@ -158,12 +158,12 @@ body.theme-dark {
 	font-size: 0.75em;
 }
 
-.gh-link-inline-tag:hover {
+.github-link-inline:hover {
 	color: var(--gh-color-fg-default);
 	text-decoration: none;
 }
 
-.gh-link-inline-tag-section {
+.github-link-inline-section {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -171,55 +171,87 @@ body.theme-dark {
 	overflow: hidden;
 }
 
-.gh-link-inline-tag-icon {
-	display: inline-flex;
+.github-link-inline-icon {
 	padding: 2px 0;
 }
 
-.gh-link-inline-tag-icon > svg {
+.github-link-inline-icon > svg {
 	width: var(--icon-s);
 	height: var(--icon-s);
 	stroke-width: var(--icon-s-stroke-width);
 }
 
-.gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon) {
+.github-link-inline-section:has(> .github-link-inline-icon) {
 	background-color: var(--gh-color-canvas-inset);
 }
 
-.gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon[data-status="open"]) {
-	background-color: var(--gh-color-open-subtle);
+.github-link-status-icon {
+	display: inline-flex;
+}
+.github-link-status-icon[data-status="open"] {
 	color: var(--gh-color-open-fg);
+}
+.github-link-status-icon[data-status="closed"] {
+	color: var(--gh-color-closed-fg);
+}
+.github-link-status-icon[data-status="done"] {
+	color: var(--gh-color-done-fg);
+}
+
+.github-link-inline-section:has(> .github-link-inline-icon[data-status="open"]) {
+	background-color: var(--gh-color-open-subtle);
 	border-color: var(--gh-color-open-emphasis);
 }
 
-.gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon[data-status="closed"]) {
+.github-link-inline-section:has(> .github-link-inline-icon[data-status="closed"]) {
 	background-color: var(--gh-color-closed-subtle);
-	color: var(--gh-color-closed-fg);
 	border-color: var(--gh-color-closed-emphasis);
 }
 
-.gh-link-inline-tag-section:has(> .gh-link-inline-tag-icon[data-status="done"]) {
+.github-link-inline-section:has(> .github-link-inline-icon[data-status="done"]) {
 	background-color: var(--gh-color-done-subtle);
-	color: var(--gh-color-done-fg);
 	border-color: var(--gh-color-done-emphasis);
 }
 
-.gh-link-inline-tag-section:has(> .gh-link-inline-tag-repo) {
+.github-link-inline-section:has(> .github-link-inline-repo) {
 	background-color: var(--gh-color-accent-subtle);
 	color: var(--gh-color-accent-fg);
 	border-color: var(--gh-color-accent-emphasis);
 	flex-shrink: 0;
 }
 
-.gh-link-inline-tag-repo {
+.github-link-inline-repo {
 	text-wrap: nowrap;
 	line-height: var(--line-height-normal);
 }
 
-.gh-link-inline-tag-pr-title,
-.gh-link-inline-tag-issue-title {
+.github-link-inline-pr-title,
+.github-link-inline-issue-title {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	text-wrap: nowrap;
 	line-height: var(--line-height-normal);
+}
+
+.github-link-table th {
+	font-weight: var(--font-bold);
+}
+
+.github-link-table a {
+	text-decoration: none;
+}
+.github-link-table a:hover {
+	text-decoration: underline;
+}
+
+.github-link-table-avatar {
+	width: max(24px, var(--icon-l));
+	height: max(24px, var(--icon-l));
+}
+
+.github-link-table-status,
+.github-link-table-author {
+	display: flex;
+	gap: 6px;
+	align-items: center;
 }

@@ -1,20 +1,24 @@
+import { getPRStatus } from "src/github/response";
 import { getIssue, getPullRequest } from "../github/github";
 
 import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
+import { setPRIcon } from "src/icon";
 
 export async function createTag(href: string) {
 	const parsedUrl = parseUrl(href);
-	const container = createEl("a", { cls: "gh-link-inline-tag", href });
+	const container = createEl("a", { cls: "github-link-inline", href });
 
 	// Add icon
-	const icon = createTagSection(container).createSpan({ cls: "gh-link-inline-tag-icon" });
+	const icon = createTagSection(container).createSpan({
+		cls: ["github-link-status-icon", "github-link-inline-icon"],
+	});
 	setIcon(icon, "github");
 
 	// Add repo
 	if (parsedUrl.repo) {
 		createTagSection(container).createSpan({
-			cls: "gh-link-inline-tag-repo",
+			cls: "github-link-inline-repo",
 			text: parsedUrl.repo,
 		});
 	}
@@ -22,7 +26,7 @@ export async function createTag(href: string) {
 	// fall back to org if no repo found
 	else if (parsedUrl.org) {
 		createTagSection(container).createSpan({
-			cls: "gh-link-inline-tag-org",
+			cls: "github-link-inline-org",
 			text: parsedUrl.org,
 		});
 	}
@@ -39,7 +43,7 @@ export async function createTag(href: string) {
 					icon.dataset.status = issue.state;
 				}
 				createTagSection(container).createSpan({
-					cls: "gh-link-inline-tag-issue-title",
+					cls: "github-link-inline-issue-title",
 					text: issue.title,
 				});
 			}
@@ -49,14 +53,10 @@ export async function createTag(href: string) {
 		if (parsedUrl.pr !== undefined) {
 			const pull = await getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr);
 			if (pull.title) {
-				setIcon(icon, "git-pull-request-arrow");
-				if (pull.merged) {
-					icon.dataset.status = "done";
-				} else {
-					icon.dataset.status = pull.state;
-				}
+				const status = getPRStatus(pull);
+				setPRIcon(icon, status);
 				createTagSection(container).createSpan({
-					cls: "gh-link-inline-tag-pr-title",
+					cls: "github-link-inline-pr-title",
 					text: pull.title,
 				});
 			}
@@ -67,7 +67,7 @@ export async function createTag(href: string) {
 }
 
 function createTagSection(parent: HTMLElement): HTMLElement {
-	return parent.createDiv({ cls: "gh-link-inline-tag-section" });
+	return parent.createDiv({ cls: "github-link-inline-section" });
 }
 
 export async function InlineRenderer(el: HTMLElement) {
