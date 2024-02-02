@@ -3,6 +3,8 @@ import type { CodeResponse, IssueResponse, PullResponse, SearchIssueResponse, Se
 import type { RequestUrlParam } from "obsidian";
 import { requestUrl } from "obsidian";
 
+const debug = false;
+
 const baseApi = "https://api.github.com";
 
 async function githubRequest(config: RequestUrlParam, token?: string) {
@@ -14,8 +16,14 @@ async function githubRequest(config: RequestUrlParam, token?: string) {
 	if (token) {
 		config.headers.Authorization = `Bearer ${token}`;
 	}
+	if (debug) {
+		console.log(config);
+	}
 	try {
 		const response = await requestUrl(config);
+		if (debug) {
+			console.log(response);
+		}
 		return response;
 	} catch (err) {
 		console.error(err);
