@@ -1,7 +1,7 @@
 {
 	"id": "github-link",
 	"name": "GitHub Link",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
 	"description": "Enrich your notes with content from GitHub REST API",
 	"author": "Nathonius",
