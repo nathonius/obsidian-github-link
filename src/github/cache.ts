@@ -29,15 +29,24 @@ class OrgCache {
 }
 
 export class Cache {
+	public readonly generic: Record<string, CacheEntry<unknown>> = {};
 	public readonly orgs: Record<string, OrgCache> = {};
 	public readonly queries = new QueryCache();
+
+	getGeneric(url: string): unknown | null {
+		return this.getCacheValue(this.generic[url] ?? null);
+	}
+
+	setGeneric(url: string, value: unknown): void {
+		this.generic[url] = new CacheEntry(value);
+	}
 
 	getIssue(org: string, repo: string, issue: number): IssueResponse | null {
 		const repoCache = this.getRepoCache(org, repo);
 		return this.getCacheValue(repoCache.issueCache[issue] ?? null);
 	}
 
-	setIssue(org: string, repo: string, issue: IssueResponse) {
+	setIssue(org: string, repo: string, issue: IssueResponse): void {
 		const issueCache = this.getRepoCache(org, repo).issueCache;
 		const existingCache = issueCache[issue.id];
 		if (existingCache) {

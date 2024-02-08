@@ -3,11 +3,11 @@ import type { CodeResponse, IssueResponse, PullResponse, SearchIssueResponse, Se
 import type { RequestUrlParam } from "obsidian";
 import { requestUrl } from "obsidian";
 
-const debug = false;
+const debug = true;
 
 const baseApi = "https://api.github.com";
 
-async function githubRequest(config: RequestUrlParam, token?: string) {
+export async function githubRequest(config: RequestUrlParam, token?: string) {
 	if (!config.headers) {
 		config.headers = {};
 	}

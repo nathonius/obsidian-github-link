@@ -32,6 +32,7 @@
 	"dependencies": {
 		"@octokit/auth-oauth-device": "^6.0.1",
 		"@octokit/core": "^5.0.2",
+		"@octokit/openapi-types": "^19.1.0",
 		"@octokit/plugin-rest-endpoint-methods": "^10.2.0",
 		"@octokit/request": "^8.1.6"
 	}

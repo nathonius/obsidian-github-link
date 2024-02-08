@@ -1,8 +1,15 @@
-import type { IssueResponse, PullResponse, SearchIssueResponse, SearchRepoResponse } from "./response";
+import type {
+	IssueResponse,
+	IssueTimelineResponse,
+	PullResponse,
+	SearchIssueResponse,
+	SearchRepoResponse,
+	TimelineCrossReferencedEvent,
+} from "./response";
 
 import { Cache } from "./cache";
 import { PluginSettings } from "src/plugin";
-import { api } from "./api";
+import { api, githubRequest } from "./api";
 
 const cache = new Cache();
 
@@ -55,4 +62,21 @@ export async function searchRepos(query: string, org?: string): Promise<SearchRe
 	const response = await api.searchRepos(query, getToken(org));
 	cache.setRepoQuery(query, response);
 	return response;
+}
+
+export async function getPRForIssue(timelineUrl: string, org?: string) {
+	let response = cache.getGeneric(timelineUrl) as IssueTimelineResponse | null;
+	if (response === null) {
+		response = (await githubRequest({ url: timelineUrl }, getToken(org))).json;
+	}
+	if (!response) {
+		return null;
+	}
+	cache.setGeneric(timelineUrl, response);
+	// TODO: Figure out a better/more reliable way to do this.
+	const crossRefEvent = response.find((_evt) => {
+		const evt = _evt as Partial<TimelineCrossReferencedEvent>;
+		return evt.event === "cross-referenced" && evt.source?.issue?.pull_request?.html_url;
+	}) as TimelineCrossReferencedEvent | undefined;
+	return crossRefEvent?.source.issue?.pull_request?.html_url ?? null;
 }

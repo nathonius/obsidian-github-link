@@ -1,4 +1,4 @@
-import type { SearchIssueParams, SearchRepoParams } from "src/github/response";
+import type { ListIssueParams, ListPullParams, SearchIssueParams, SearchRepoParams } from "src/github/response";
 
 import { parseYaml } from "obsidian";
 
@@ -15,12 +15,13 @@ export enum QueryType {
 export interface BaseParams {
 	outputType: OutputType;
 	queryType: QueryType;
-	query: string;
 }
 
-export type PullRequestParams = Omit<SearchIssueParams, "q"> & BaseParams;
-export type IssueParams = Omit<SearchIssueParams, "q"> & BaseParams;
-export type RepoParams = Omit<SearchRepoParams, "q"> & BaseParams;
+export type PullRequestListParams = ListPullParams & BaseParams;
+export type IssueListParams = ListIssueParams & BaseParams;
+export type PullRequestSearchParams = Omit<SearchIssueParams, "q"> & BaseParams & { query: string };
+export type IssueSearchParams = Omit<SearchIssueParams, "q"> & BaseParams & { query: string };
+export type RepoSearchParams = Omit<SearchRepoParams, "q"> & BaseParams & { query: string };
 
 export type TableParams = { columns: string[] } & BaseParams;
 
@@ -36,14 +37,25 @@ export function processParams(source: string): BaseParams | null {
 	return params ?? null;
 }
 
-export function isPullRequestParams(params: BaseParams): params is PullRequestParams {
-	return params.queryType === QueryType.PullRequest;
+export function isSearchParams(
+	params: BaseParams,
+): params is PullRequestSearchParams | IssueSearchParams | RepoSearchParams {
+	return Boolean((params as IssueSearchParams).query);
 }
-export function isIssueParams(params: BaseParams): params is IssueParams {
-	return params.queryType === QueryType.Issue;
+export function isPullRequestListParams(params: BaseParams): params is PullRequestListParams {
+	return params.queryType === QueryType.PullRequest && !isPullRequestSearchParams(params);
 }
-export function isRepoParams(params: BaseParams): params is RepoParams {
-	return params.queryType === QueryType.Repo;
+export function isPullRequestSearchParams(params: BaseParams): params is PullRequestSearchParams {
+	return params.queryType === QueryType.PullRequest && Boolean((params as PullRequestSearchParams)?.query);
+}
+export function isIssueListParams(params: BaseParams): params is IssueListParams {
+	return params.queryType === QueryType.Issue && !isIssueSearchParams(params);
+}
+export function isIssueSearchParams(params: BaseParams): params is IssueSearchParams {
+	return params.queryType === QueryType.Issue && Boolean((params as IssueSearchParams)?.query);
+}
+export function isRepoSearchParams(params: BaseParams): params is RepoSearchParams {
+	return params.queryType === QueryType.Repo && Boolean((params as RepoSearchParams)?.query);
 }
 export function isTableParams(params: BaseParams): params is TableParams {
 	return params.outputType === OutputType.Table;
