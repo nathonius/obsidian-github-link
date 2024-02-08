@@ -1,4 +1,5 @@
 import type { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+import type * as OpenAPI from "@octokit/openapi-types";
 
 export enum IssueStatus {
 	Open = "open",
@@ -6,18 +7,27 @@ export enum IssueStatus {
 	Done = "done",
 }
 
+// Response Types
 export type IssueResponse = RestEndpointMethodTypes["issues"]["get"]["response"]["data"];
+export type IssueListResponse = RestEndpointMethodTypes["issues"]["list"]["response"]["data"];
 export type PullResponse = RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
+export type PullListResponse = RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
 export type CodeResponse = RestEndpointMethodTypes["repos"]["getContent"]["response"]["data"];
-export type SearchRepoParams = RestEndpointMethodTypes["search"]["repos"]["parameters"];
 export type SearchRepoResponse = RestEndpointMethodTypes["search"]["repos"]["response"]["data"];
-export type SearchIssueParams = RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["parameters"];
 export type SearchIssueResponse = RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["response"]["data"];
+export type TimelineCrossReferencedEvent = OpenAPI.components["schemas"]["timeline-cross-referenced-event"];
 
-export function getSearchResultPRStatus(pr: SearchIssueResponse["items"][number]): IssueStatus {
-	if (pr.pull_request?.merged_at) {
+// Param Types
+export type SearchRepoParams = RestEndpointMethodTypes["search"]["repos"]["parameters"];
+export type ListIssueParams = RestEndpointMethodTypes["issues"]["list"]["parameters"];
+export type ListPullParams = RestEndpointMethodTypes["pulls"]["list"]["parameters"];
+export type SearchIssueParams = RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["parameters"];
+export type IssueTimelineResponse = RestEndpointMethodTypes["issues"]["listEventsForTimeline"]["response"]["data"];
+
+export function getSearchResultIssueStatus(issue: SearchIssueResponse["items"][number]): IssueStatus {
+	if (issue.pull_request?.merged_at || issue.state_reason === "completed") {
 		return IssueStatus.Done;
-	} else if (pr.closed_at) {
+	} else if (issue.closed_at || issue.state === "closed") {
 		return IssueStatus.Closed;
 	} else {
 		return IssueStatus.Open;

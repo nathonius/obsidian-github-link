@@ -1,4 +1,5 @@
 import type { SearchIssueResponse } from "src/github/response";
+import { parseUrl, repoAPIToBrowserUrl } from "src/github/url-parse";
 import { DateFormat } from "src/util";
 
 export interface ColumnGetter<T> {
@@ -27,6 +28,32 @@ export function DateCell(value: string | undefined | null, el: HTMLTableCellElem
  * Issue and PR columns share types, so some columns are shared
  */
 export const CommonIssuePRColumns: ColumnsMap<SearchIssueResponse["items"][number]> = {
+	number: {
+		header: "Number",
+		cell: (row, el) => {
+			el.classList.add("github-link-table-issue-number");
+			el.createEl("a", { text: `#${row.number}`, href: row.html_url });
+		},
+	},
+	repo: {
+		header: "Repo",
+		cell: (row, el) => {
+			el.classList.add("github-link-table-repo");
+			const url = repoAPIToBrowserUrl(row.repository_url);
+			const parsed = parseUrl(url);
+			el.createEl("a", { text: parsed.repo, href: url });
+		},
+	},
+	author: {
+		header: "Author",
+		cell: (row, el) => {
+			const anchor = el.createEl("a", { cls: "github-link-table-author" });
+			if (row.user?.avatar_url) {
+				anchor.createEl("img", { cls: "github-link-table-avatar", attr: { src: row.user.avatar_url } });
+			}
+			anchor.createSpan({ text: row.user?.login });
+		},
+	},
 	created: {
 		header: "Created",
 		cell: (row, el) => {

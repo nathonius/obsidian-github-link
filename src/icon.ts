@@ -9,3 +9,12 @@ export function setPRIcon(icon: HTMLElement, status: IssueStatus) {
 	}
 	icon.dataset.status = status;
 }
+
+export function setIssueIcon(icon: HTMLElement, status: IssueStatus, reason: string | null | undefined) {
+	if (reason === "not_planned") {
+		setIcon(icon, "square-slash");
+	} else {
+		setIcon(icon, "square-dot");
+	}
+	icon.dataset.status = status;
+}
