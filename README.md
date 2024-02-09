@@ -111,3 +111,12 @@ For public repositories, no extra configuration is required. For private repos, 
 Authentication only requires a GitHub account. In GitHub Link plugin settings, add a new account. Give the account a name.
 
 The plugin supports an automated authentication flow, or you can [generate your own token](https://github.com/settings/tokens). To use the automated flow, select "Generate Token". In the modal that appears, copy the code and open the authentication link. After pasting the auth link, you'll be prompted to allow access to the GitHub Link plugin. Once accepted, you can return to Obsidian and the token will be saved automatically.
+
+## Plugin Compatibility
+
+There are other plugins that provide some similar functionality:
+
+-   [GitHub Embeds](https://github.com/MrGVSV/obsidian-github-embeds)
+-   [GitHub Issue Augmentation](https://github.com/samprintz/obsidian-issue-augmentation-plugin)
+
+These and GitHub Link are unlikely to be compatible and should not currently be used together.
