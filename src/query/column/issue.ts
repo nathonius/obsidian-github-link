@@ -1,11 +1,11 @@
-import { getSearchResultIssueStatus, type SearchIssueResponse } from "src/github/response";
+import { getSearchResultIssueStatus, type IssueSearchResponse } from "src/github/response";
 import { CommonIssuePRColumns, type ColumnsMap } from "./base";
 import { setIssueIcon } from "src/icon";
 import { titleCase } from "src/util";
 import { createTag } from "src/inline/inline";
 import { getPRForIssue } from "src/github/github";
 
-export const IssueColumns: ColumnsMap<SearchIssueResponse["items"][number]> = {
+export const IssueColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
 	...CommonIssuePRColumns,
 	status: {
 		header: "Status",
@@ -24,6 +24,7 @@ export const IssueColumns: ColumnsMap<SearchIssueResponse["items"][number]> = {
 			if (!row.timeline_url) {
 				return;
 			}
+			console.log(row);
 			const pullRequestUrl = await getPRForIssue(row.timeline_url);
 			if (!pullRequestUrl) {
 				return;

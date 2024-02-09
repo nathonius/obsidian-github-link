@@ -7,6 +7,21 @@ export function valueWithin(value: number, min: number, max: number) {
 	return value >= min && value <= max;
 }
 
+export function sanitizeObject<T>(params: T, usableFieldMap: Record<keyof T, boolean>): T {
+	const usableFields: (keyof T)[] = Object.entries(usableFieldMap)
+		.filter(([_, value]) => value)
+		.map(([key, _]) => key as keyof T);
+
+	const result: T = {} as T;
+	for (const field of usableFields) {
+		if (params[field] !== undefined) {
+			result[field] = params[field];
+		}
+	}
+
+	return result;
+}
+
 /**
  * Attempts to handle getting a nested property using a string of js object notation
  */
@@ -64,3 +79,23 @@ export const DateFormat = {
 		day: n,
 	}),
 };
+
+export class RequestError implements Error {
+	name: string;
+	message: string;
+	stack?: string | undefined;
+	headers: Record<string, string>;
+	status: number;
+	constructor(public readonly originalError: Error) {
+		// Base error props
+		this.name = originalError.name;
+		this.stack = originalError.stack;
+		this.message = originalError.message;
+
+		// Request props
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		this.headers = (originalError as any).headers;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		this.status = (originalError as any).status;
+	}
+}

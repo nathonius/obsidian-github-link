@@ -31,12 +31,62 @@ This produces a table of results that refreshes upon opening the note.
 
 The codeblock must be valid YAML. The following options are currently supported:
 
-| Option       | Values                       | Description                                                                                                                                            |
-| ------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `outputType` | `table`                      | Required. Only table is currently supported.                                                                                                           |
-| `queryType`  | `pull-request`               | Required. Only pull requests are currently supported.                                                                                                  |
-| `query`      | A valid GitHub search query. | Required. See the [GitHub docs](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests) for more information. |
-| `columns`    | See list below.              | Required. Should be an array of values.                                                                                                                |
+| Option       | Values                            | Description                                                                                                                                                                                       |
+| ------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `outputType` | `table`                           | Required. Only table is currently supported.                                                                                                                                                      |
+| `queryType`  | `issue`, `pull-request`           | Required.                                                                                                                                                                                         |
+| `columns`    | See Supported Columns list below. | Required. Should be an array of values.                                                                                                                                                           |
+| `query`      | A valid GitHub search query.      | Required for custom queries, overrides other params. See the [GitHub docs](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests) for more information. |
+
+Other params will depend on the type of query. If the `query` parameter is provided, these other parameters will be ignored. Each section below describes a set of parameters for a certain query profile.
+
+#### List My Assigned Issues
+
+**Note:** this requires a valid token.
+
+| Option      | Values                                                           | Description                                                                                      |
+| ----------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `org`       | Name of a user or organization.                                  | Will use token for default account if not given.                                                 |
+| `filter`    | `assigned`, `created`, `mentioned`, `subscribed`, `repos`, `all` | What type of issues to return. `all` and `repos` return all issues, regardless of participation. |
+| `state`     | `open`, `closed`, `all`                                          |                                                                                                  |
+| `labels`    | Label or array of issue labels.                                  | Only matching issues will be included.                                                           |
+| `sort`      | `created`, `updated`, `comments`                                 |                                                                                                  |
+| `direction` | `desc`, `asc`                                                    |                                                                                                  |
+| `since`     | `YYYY-MM-DDTHH:MM:SSZ`                                           | Minimum update date, in full ISO format.                                                         |
+| `per_page`  | Integer.                                                         | Number of items to return per-page.                                                              |
+| `page`      | Integer.                                                         | Page of results to use.                                                                          |
+
+#### List Issues For Repo
+
+| Option      | Values                                          | Description                              |
+| ----------- | ----------------------------------------------- | ---------------------------------------- |
+| `org`       | Name of a user or organization.                 | Required.                                |
+| `repo`      | Repository name.                                | Required.                                |
+| `milestone` | Issue milestone, milestone number, `*`, `none`. |                                          |
+| `state`     | `open`, `closed`, `all`                         |                                          |
+| `assignee`  | Name of a user, `*`, `none`.                    |                                          |
+| `creator`   | Name of a user.                                 |                                          |
+| `mentioned` | Name of a user.                                 |                                          |
+| `labels`    | Label or array of issue labels.                 | Only matching issues will be included.   |
+| `sort`      | `created`, `updated`, `comments`                |                                          |
+| `direction` | `desc`, `asc`                                   |                                          |
+| `since`     | `YYYY-MM-DDTHH:MM:SSZ`                          | Minimum update date, in full ISO format. |
+| `per_page`  | Integer.                                        | Number of items to return per-page.      |
+| `page`      | Integer.                                        | Page of results to use.                  |
+
+#### List Pull Requests For Repo
+
+| Option      | Values                                             | Description                                  |
+| ----------- | -------------------------------------------------- | -------------------------------------------- |
+| `org`       | Name of a user or organization.                    | Required.                                    |
+| `repo`      | Repository name.                                   | Required.                                    |
+| `state`     | `open`, `closed`, `all`                            |                                              |
+| `head`      | `user:ref-name` or `org:ref-name`.                 | Filter to head user or org with branch name. |
+| `base`      | `branch-name-base`                                 | Filter by base branch name.                  |
+| `sort`      | `created`, `updated`, `popularity`, `long-running` |                                              |
+| `direction` | `desc`, `asc`                                      |                                              |
+| `per_page`  | Integer.                                           | Number of items to return per-page.          |
+| `page`      | Integer.                                           | Page of results to use.                      |
 
 #### Supported Columns
 
