@@ -1,4 +1,13 @@
-import type { IssueResponse, PullResponse, SearchIssueResponse, SearchRepoResponse } from "./response";
+import type {
+	IssueListParams,
+	IssueListResponse,
+	IssueResponse,
+	IssueSearchResponse,
+	PullListParams,
+	PullListResponse,
+	PullResponse,
+	RepoSearchResponse,
+} from "./response";
 
 class CacheEntry<T> {
 	constructor(
@@ -15,17 +24,20 @@ class CacheEntry<T> {
 }
 
 class QueryCache {
-	public readonly issueCache: Record<string, CacheEntry<SearchIssueResponse>> = {};
-	public readonly repoCache: Record<string, CacheEntry<SearchRepoResponse>> = {};
+	public readonly issueCache: Record<string, CacheEntry<IssueSearchResponse>> = {};
+	public readonly repoCache: Record<string, CacheEntry<RepoSearchResponse>> = {};
 }
 
 class RepoCache {
 	public readonly issueCache: Record<number, CacheEntry<IssueResponse>> = {};
+	public readonly issueListForRepoCache: Record<string, CacheEntry<IssueListResponse>> = {};
 	public readonly pullCache: Record<string, CacheEntry<PullResponse>> = {};
+	public readonly pullListForRepoCache: Record<string, CacheEntry<PullListResponse>> = {};
 }
 
 class OrgCache {
 	public readonly repos: Record<string, RepoCache> = {};
+	public readonly issueList: Record<string, CacheEntry<IssueListResponse>> = {};
 }
 
 export class Cache {
@@ -58,9 +70,39 @@ export class Cache {
 		}
 	}
 
+	getIssueList(org: string, params: IssueListParams): IssueListResponse | null {
+		const orgCache = this.getOrgCache(org);
+		return this.getCacheValue(orgCache.issueList[JSON.stringify(params)] ?? null);
+	}
+
+	setIssueList(org: string, params: IssueListParams, value: IssueListResponse): void {
+		const orgCache = this.getOrgCache(org);
+		orgCache.issueList[JSON.stringify(params)] = new CacheEntry(value);
+	}
+
+	getIssueListForRepo(org: string, repo: string, params: IssueListParams): IssueListResponse | null {
+		const repoCache = this.getRepoCache(org, repo);
+		return this.getCacheValue(repoCache.issueListForRepoCache[JSON.stringify(params)] ?? null);
+	}
+
+	setIssueListForRepo(org: string, repo: string, params: IssueListParams, value: IssueListResponse): void {
+		const repoCache = this.getRepoCache(org, repo);
+		repoCache.issueListForRepoCache[JSON.stringify(params)] = new CacheEntry(value);
+	}
+
 	getPullRequest(org: string, repo: string, pullRequest: number): PullResponse | null {
 		const repoCache = this.getRepoCache(org, repo);
 		return this.getCacheValue(repoCache.pullCache[pullRequest] ?? null);
+	}
+
+	getPullListForRepo(org: string, repo: string, params: PullListParams): PullListResponse | null {
+		const repoCache = this.getRepoCache(org, repo);
+		return this.getCacheValue(repoCache.pullListForRepoCache[JSON.stringify(params)] ?? null);
+	}
+
+	setPullListForRepo(org: string, repo: string, params: PullListParams, value: PullListResponse): void {
+		const repoCache = this.getRepoCache(org, repo);
+		repoCache.pullListForRepoCache[JSON.stringify(params)] = new CacheEntry(value);
 	}
 
 	setPullRequest(org: string, repo: string, pullRequest: PullResponse): void {
@@ -75,27 +117,32 @@ export class Cache {
 		}
 	}
 
-	getIssueQuery(query: string): SearchIssueResponse | null {
+	getIssueQuery(query: string): IssueSearchResponse | null {
 		return this.getCacheValue(this.queries.issueCache[query] ?? null);
 	}
 
-	setIssueQuery(query: string, result: SearchIssueResponse): void {
-		this.queries.issueCache[query] = new CacheEntry<SearchIssueResponse>(result);
+	setIssueQuery(query: string, result: IssueSearchResponse): void {
+		this.queries.issueCache[query] = new CacheEntry<IssueSearchResponse>(result);
 	}
 
-	getRepoQuery(query: string): SearchRepoResponse | null {
+	getRepoQuery(query: string): RepoSearchResponse | null {
 		return this.getCacheValue(this.queries.repoCache[query] ?? null);
 	}
 
-	setRepoQuery(query: string, result: SearchRepoResponse): void {
-		this.queries.repoCache[query] = new CacheEntry<SearchRepoResponse>(result);
+	setRepoQuery(query: string, result: RepoSearchResponse): void {
+		this.queries.repoCache[query] = new CacheEntry<RepoSearchResponse>(result);
 	}
 
-	private getRepoCache(org: string, repo: string) {
+	private getOrgCache(org: string): OrgCache {
 		let orgCache = this.orgs[org];
 		if (!orgCache) {
 			orgCache = this.orgs[org] = new OrgCache();
 		}
+		return orgCache;
+	}
+
+	private getRepoCache(org: string, repo: string) {
+		const orgCache = this.getOrgCache(org);
 		let repoCache = orgCache.repos[repo];
 		if (!repoCache) {
 			repoCache = orgCache.repos[repo] = new RepoCache();

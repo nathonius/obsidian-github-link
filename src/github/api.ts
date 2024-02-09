@@ -1,13 +1,32 @@
-import type { CodeResponse, IssueResponse, PullResponse, SearchIssueResponse, SearchRepoResponse } from "./response";
+import type {
+	CodeResponse,
+	IssueListParams,
+	IssueListResponse,
+	IssueResponse,
+	IssueSearchResponse,
+	PullListParams,
+	PullListResponse,
+	PullResponse,
+	RepoSearchResponse,
+} from "./response";
+import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 
-import type { RequestUrlParam } from "obsidian";
+import { RequestError } from "src/util";
 import { requestUrl } from "obsidian";
 
-const debug = true;
+const debug = false;
 
 const baseApi = "https://api.github.com";
 
-export async function githubRequest(config: RequestUrlParam, token?: string) {
+export function addParams(href: string, params: Record<string, unknown>): string {
+	const url = new URL(href);
+	for (const [key, value] of Object.entries(params)) {
+		url.searchParams.set(key, `${value}`);
+	}
+	return url.toString();
+}
+
+export async function githubRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
 	if (!config.headers) {
 		config.headers = {};
 	}
@@ -26,14 +45,31 @@ export async function githubRequest(config: RequestUrlParam, token?: string) {
 		}
 		return response;
 	} catch (err) {
-		console.error(err);
-		throw err;
+		throw new RequestError(err as Error);
 	}
 }
 
 async function getIssue(org: string, repo: string, issue: number, token?: string): Promise<IssueResponse> {
 	const result = await githubRequest({ url: `${baseApi}/repos/${org}/${repo}/issues/${issue}` }, token);
+
 	return result.json as IssueResponse;
+}
+
+async function listIssuesForToken(params: IssueListParams = {}, token: string): Promise<IssueListResponse> {
+	const url = addParams(`${baseApi}/issues`, params as Record<string, unknown>);
+	const result = await githubRequest({ url }, token);
+	return result.json as IssueListResponse;
+}
+
+async function listIssuesForRepo(
+	org: string,
+	repo: string,
+	params: IssueListParams = {},
+	token?: string,
+): Promise<IssueListResponse> {
+	const url = addParams(`${baseApi}/repos/${org}/${repo}/issues`, params as Record<string, unknown>);
+	const result = await githubRequest({ url }, token);
+	return result.json as IssueListResponse;
 }
 
 async function getPullRequest(org: string, repo: string, pr: number, token?: string): Promise<PullResponse> {
@@ -46,6 +82,17 @@ async function getPullRequest(org: string, repo: string, pr: number, token?: str
 	return result.json as PullResponse;
 }
 
+async function listPullRequestsForRepo(
+	org: string,
+	repo: string,
+	params: PullListParams = {},
+	token?: string,
+): Promise<PullListResponse> {
+	const url = addParams(`${baseApi}/repos/${org}/${repo}/pulls`, params as Record<string, unknown>);
+	const result = await githubRequest({ url }, token);
+	return result.json as PullListResponse;
+}
+
 async function getCode(org: string, repo: string, path: string, branch: string, token?: string): Promise<CodeResponse> {
 	const result = await githubRequest(
 		{
@@ -56,19 +103,22 @@ async function getCode(org: string, repo: string, path: string, branch: string, 
 	return result.json as CodeResponse;
 }
 
-async function searchRepos(query: string, token?: string): Promise<SearchRepoResponse> {
+async function searchRepos(query: string, token?: string): Promise<RepoSearchResponse> {
 	const result = await githubRequest({ url: `${baseApi}/search/repositories?q=${encodeURIComponent(query)}` }, token);
-	return result.json as SearchRepoResponse;
+	return result.json as RepoSearchResponse;
 }
 
-async function searchIssues(query: string, token?: string): Promise<SearchIssueResponse> {
+async function searchIssues(query: string, token?: string): Promise<IssueSearchResponse> {
 	const result = await githubRequest({ url: `${baseApi}/search/issues?q=${encodeURIComponent(query)}` }, token);
-	return result.json as SearchIssueResponse;
+	return result.json as IssueSearchResponse;
 }
 
 export const api = {
 	getIssue,
+	listIssuesForToken,
+	listIssuesForRepo,
 	getPullRequest,
+	listPullRequestsForRepo,
 	getCode,
 	searchIssues,
 	searchRepos,

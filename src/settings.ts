@@ -60,7 +60,6 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				dropdown.addOptions(options);
 				dropdown.setValue(PluginSettings.defaultAccount ?? "");
 				dropdown.onChange(async (value) => {
-					console.log(value);
 					const selectedAccount = PluginSettings.accounts.find((acc) => acc.id === value);
 					if (selectedAccount) {
 						PluginSettings.defaultAccount = selectedAccount.id;

@@ -1,4 +1,4 @@
-import type { SearchIssueResponse } from "src/github/response";
+import type { IssueSearchResponse } from "src/github/response";
 import { parseUrl, repoAPIToBrowserUrl } from "src/github/url-parse";
 import { DateFormat } from "src/util";
 
@@ -27,7 +27,7 @@ export function DateCell(value: string | undefined | null, el: HTMLTableCellElem
 /**
  * Issue and PR columns share types, so some columns are shared
  */
-export const CommonIssuePRColumns: ColumnsMap<SearchIssueResponse["items"][number]> = {
+export const CommonIssuePRColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
 	number: {
 		header: "Number",
 		cell: (row, el) => {

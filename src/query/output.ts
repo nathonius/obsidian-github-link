@@ -1,7 +1,7 @@
-import type { SearchIssueResponse, SearchRepoResponse } from "src/github/response";
 import { getProp, titleCase } from "src/util";
 
-import { QueryType, type TableParams } from "./params";
+import type { BaseParams } from "./params";
+import { QueryType } from "./params";
 import { PullRequestColumns } from "./column/pull-request";
 import { IssueColumns } from "./column/issue";
 import { RepoColumns } from "./column/repo";
@@ -12,8 +12,8 @@ const columns = {
 	[QueryType.Repo]: RepoColumns,
 };
 
-export async function renderTable<T extends SearchIssueResponse | SearchRepoResponse>(
-	params: TableParams,
+export async function renderTable<T extends { items: unknown[] } | unknown[]>(
+	params: BaseParams,
 	result: T,
 	el: HTMLElement,
 ) {
@@ -25,7 +25,8 @@ export async function renderTable<T extends SearchIssueResponse | SearchRepoResp
 		th.setText(columns[params.queryType][col]?.header ?? titleCase(col));
 	}
 	const tbody = table.createEl("tbody");
-	for (const row of result.items) {
+	const items = Array.isArray(result) ? result : result.items;
+	for (const row of items) {
 		const tr = tbody.createEl("tr");
 		for (const col of params.columns) {
 			const cell = tr.createEl("td");

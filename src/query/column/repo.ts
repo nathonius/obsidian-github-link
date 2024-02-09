@@ -1,4 +1,4 @@
-import type { SearchRepoResponse } from "src/github/response";
+import type { RepoSearchResponse } from "src/github/response";
 import type { ColumnsMap } from "./base";
 
-export const RepoColumns: ColumnsMap<SearchRepoResponse["items"][number]> = {};
+export const RepoColumns: ColumnsMap<RepoSearchResponse["items"][number]> = {};

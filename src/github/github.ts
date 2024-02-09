@@ -1,22 +1,33 @@
 import type {
+	IssueListParams,
+	IssueListResponse,
 	IssueResponse,
+	IssueSearchResponse,
 	IssueTimelineResponse,
+	PullListParams,
+	PullListResponse,
 	PullResponse,
-	SearchIssueResponse,
-	SearchRepoResponse,
+	RepoSearchResponse,
 	TimelineCrossReferencedEvent,
 } from "./response";
+import { RequestError, sanitizeObject } from "src/util";
+import { api, githubRequest } from "./api";
 
 import { Cache } from "./cache";
+import type { GithubAccount } from "src/settings";
 import { PluginSettings } from "src/plugin";
-import { api, githubRequest } from "./api";
 
 const cache = new Cache();
 
-function getToken(org?: string): string | undefined {
+function getAccount(org?: string): GithubAccount | undefined {
 	const account =
 		PluginSettings.accounts.find((acc) => acc.orgs.some((savedOrg) => savedOrg === org)) ??
 		PluginSettings.accounts.find((acc) => acc.id === PluginSettings.defaultAccount);
+	return account;
+}
+
+function getToken(org?: string): string | undefined {
+	const account = getAccount(org);
 	return account?.token;
 }
 
@@ -31,6 +42,64 @@ export async function getIssue(org: string, repo: string, issue: number): Promis
 	return response;
 }
 
+export async function getMyIssues(params: IssueListParams, org?: string): Promise<IssueListResponse> {
+	const account = getAccount(org);
+	if (!account || !account.token) {
+		return [];
+	}
+	const _params = sanitizeObject(params, {
+		assignee: false,
+		creator: false,
+		direction: true,
+		labels: true,
+		mentioned: false,
+		milestone: false,
+		page: true,
+		per_page: true,
+		since: true,
+		sort: true,
+		state: true,
+		filter: true,
+		org: false,
+		repo: false,
+	});
+	const cachedValue = cache.getIssueList(account.name, _params);
+	if (cachedValue) {
+		return Promise.resolve(cachedValue);
+	}
+
+	const response = await api.listIssuesForToken(_params, account.token);
+	cache.setIssueList(account.name, _params, response);
+	return response;
+}
+
+export async function getIssuesForRepo(params: IssueListParams, org: string, repo: string): Promise<IssueListResponse> {
+	const _params = sanitizeObject(params, {
+		assignee: true,
+		creator: true,
+		direction: true,
+		labels: true,
+		mentioned: true,
+		milestone: true,
+		page: true,
+		per_page: true,
+		since: true,
+		sort: true,
+		state: true,
+		org: false,
+		repo: false,
+		filter: false,
+	});
+	const cachedValue = cache.getIssueListForRepo(org, repo, _params);
+	if (cachedValue) {
+		return Promise.resolve(cachedValue);
+	}
+
+	const response = await api.listIssuesForRepo(org, repo, params, getToken(org));
+	cache.setIssueListForRepo(org, repo, params, response);
+	return response;
+}
+
 export async function getPullRequest(org: string, repo: string, pullRequest: number): Promise<PullResponse> {
 	const cachedValue = cache.getPullRequest(org, repo, pullRequest);
 	if (cachedValue) {
@@ -42,7 +111,33 @@ export async function getPullRequest(org: string, repo: string, pullRequest: num
 	return response;
 }
 
-export async function searchIssues(query: string, org?: string): Promise<SearchIssueResponse> {
+export async function getPullRequestsForRepo(
+	params: PullListParams,
+	org: string,
+	repo: string,
+): Promise<PullListResponse> {
+	const _params = sanitizeObject(params, {
+		org: false,
+		repo: false,
+		base: true,
+		direction: true,
+		head: true,
+		page: true,
+		per_page: true,
+		sort: true,
+		state: true,
+	});
+	const cachedValue = cache.getPullListForRepo(org, repo, _params);
+	if (cachedValue) {
+		return Promise.resolve(cachedValue);
+	}
+
+	const response = await api.listPullRequestsForRepo(org, repo, params, getToken(org));
+	cache.setPullListForRepo(org, repo, params, response);
+	return response;
+}
+
+export async function searchIssues(query: string, org?: string): Promise<IssueSearchResponse> {
 	const cachedResponse = cache.getIssueQuery(query);
 	if (cachedResponse) {
 		return Promise.resolve(cachedResponse);
@@ -53,7 +148,7 @@ export async function searchIssues(query: string, org?: string): Promise<SearchI
 	return response;
 }
 
-export async function searchRepos(query: string, org?: string): Promise<SearchRepoResponse> {
+export async function searchRepos(query: string, org?: string): Promise<RepoSearchResponse> {
 	const cachedResponse = cache.getRepoQuery(query);
 	if (cachedResponse) {
 		return Promise.resolve(cachedResponse);
@@ -64,10 +159,19 @@ export async function searchRepos(query: string, org?: string): Promise<SearchRe
 	return response;
 }
 
-export async function getPRForIssue(timelineUrl: string, org?: string) {
+export async function getPRForIssue(timelineUrl: string, org?: string): Promise<string | null> {
 	let response = cache.getGeneric(timelineUrl) as IssueTimelineResponse | null;
 	if (response === null) {
-		response = (await githubRequest({ url: timelineUrl }, getToken(org))).json;
+		try {
+			response = (await githubRequest({ url: timelineUrl }, getToken(org))).json;
+		} catch (err) {
+			// 404 means there's no timeline for this, we can ignore the error
+			if (err instanceof RequestError && err.status === 404) {
+				return null;
+			} else {
+				throw err;
+			}
+		}
 	}
 	if (!response) {
 		return null;

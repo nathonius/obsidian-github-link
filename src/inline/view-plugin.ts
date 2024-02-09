@@ -101,7 +101,6 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 				filter: (rangeFrom, rangeTo, deco) => {
 					const widget = (deco.spec as DecoSpec).widget;
 					if (widget && widget.error) {
-						console.log("GOT WIDGET ERROR");
 						return false;
 					}
 					// Check if the range is collapsed (cursor position)
