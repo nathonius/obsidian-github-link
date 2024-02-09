@@ -106,7 +106,7 @@ For public repositories, no extra configuration is required. For private repos, 
 
 ### Authentication
 
-> **NOTE**: Tokens will be stored in plain text. Use at your own risk.
+> ⚠️ **WARNING**: Tokens will be stored in plain text. Use at your own risk.
 
 Authentication only requires a GitHub account. In GitHub Link plugin settings, add a new account. Give the account a name.
 
