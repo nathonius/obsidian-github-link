@@ -63,6 +63,9 @@ export async function getMyIssues(params: IssueListParams, org?: string): Promis
 		org: false,
 		repo: false,
 	});
+	if (Array.isArray(_params.labels)) {
+		_params.labels = _params.labels.join(",");
+	}
 	const cachedValue = cache.getIssueList(account.name, _params);
 	if (cachedValue) {
 		return Promise.resolve(cachedValue);
@@ -90,13 +93,16 @@ export async function getIssuesForRepo(params: IssueListParams, org: string, rep
 		repo: false,
 		filter: false,
 	});
+	if (Array.isArray(_params.labels)) {
+		_params.labels = _params.labels.join(",");
+	}
 	const cachedValue = cache.getIssueListForRepo(org, repo, _params);
 	if (cachedValue) {
 		return Promise.resolve(cachedValue);
 	}
 
-	const response = await api.listIssuesForRepo(org, repo, params, getToken(org));
-	cache.setIssueListForRepo(org, repo, params, response);
+	const response = await api.listIssuesForRepo(org, repo, _params, getToken(org));
+	cache.setIssueListForRepo(org, repo, _params, response);
 	return response;
 }
 
@@ -132,8 +138,8 @@ export async function getPullRequestsForRepo(
 		return Promise.resolve(cachedValue);
 	}
 
-	const response = await api.listPullRequestsForRepo(org, repo, params, getToken(org));
-	cache.setPullListForRepo(org, repo, params, response);
+	const response = await api.listPullRequestsForRepo(org, repo, _params, getToken(org));
+	cache.setPullListForRepo(org, repo, _params, response);
 	return response;
 }
 
