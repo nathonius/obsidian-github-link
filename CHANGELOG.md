@@ -19,16 +19,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [0.3.0] - 2024-02-09
+
+### Added
+
+- Default column set for simple tables
+
+### Fixed
+
+- Removed some extraneous logging
+
+### Changed
+
+- Some documentation and CI improvements
+
 ## [0.2.0] - 2024-02-09
 
 ### Added
 
--   Added columns for issue results
--   Added support for simpler queries using dedicated endpoints for issues and pull requests
+- Added columns for issue results
+- Added support for simpler queries using dedicated endpoints for issues and pull requests
 
 ## [0.1.0] - 2024-02-01
 
 Initial release.
 
+[0.3.0]: https://github.com/nathonius/obsidian-github-link/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/nathonius/obsidian-github-link/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/nathonius/obsidian-github-link/releases/tag/0.1.0
