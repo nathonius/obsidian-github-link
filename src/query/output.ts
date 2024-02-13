@@ -1,12 +1,13 @@
 import { getProp, titleCase } from "src/util";
 
 import type { BaseParams } from "./params";
-import { QueryType } from "./params";
-import { PullRequestColumns } from "./column/pull-request";
+import { DEFAULT_COLUMNS } from "./column/defaults";
 import { IssueColumns } from "./column/issue";
+import { PullRequestColumns } from "./column/pull-request";
+import { QueryType } from "./params";
 import { RepoColumns } from "./column/repo";
 
-const columns = {
+const ALL_COLUMNS = {
 	[QueryType.PullRequest]: PullRequestColumns,
 	[QueryType.Issue]: IssueColumns,
 	[QueryType.Repo]: RepoColumns,
@@ -19,18 +20,22 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 ) {
 	const table = el.createEl("table", { cls: "github-link-table" });
 	const thead = table.createEl("thead");
-	for (const col of params.columns) {
+	let columns = params.columns;
+	if (!columns || columns.length === 0) {
+		columns = DEFAULT_COLUMNS[params.queryType];
+	}
+	for (const col of columns) {
 		const th = thead.createEl("th");
 		// Get predefined header if available
-		th.setText(columns[params.queryType][col]?.header ?? titleCase(col));
+		th.setText(ALL_COLUMNS[params.queryType][col]?.header ?? titleCase(col));
 	}
 	const tbody = table.createEl("tbody");
 	const items = Array.isArray(result) ? result : result.items;
 	for (const row of items) {
 		const tr = tbody.createEl("tr");
-		for (const col of params.columns) {
+		for (const col of columns) {
 			const cell = tr.createEl("td");
-			const renderer = columns[params.queryType][col];
+			const renderer = ALL_COLUMNS[params.queryType][col];
 			if (renderer) {
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				renderer.cell(row as any, cell);
