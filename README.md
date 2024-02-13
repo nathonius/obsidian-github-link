@@ -2,7 +2,7 @@
 
 **Obsidian + GitHub ❤️**
 
-Transform boring GitHub links in notes into tags with rich content from GitHub's API.
+Transform boring GitHub links in notes into tags with rich content from GitHub, and query issues and pull requests within your notes.
 
 ## Use
 
@@ -116,7 +116,7 @@ The plugin supports an automated authentication flow, or you can [generate your 
 
 There are other plugins that provide some similar functionality:
 
--   [GitHub Embeds](https://github.com/MrGVSV/obsidian-github-embeds)
--   [GitHub Issue Augmentation](https://github.com/samprintz/obsidian-issue-augmentation-plugin)
+- [GitHub Embeds](https://github.com/MrGVSV/obsidian-github-embeds)
+- [GitHub Issue Augmentation](https://github.com/samprintz/obsidian-issue-augmentation-plugin)
 
 These and GitHub Link are unlikely to be compatible and should not currently be used together.
