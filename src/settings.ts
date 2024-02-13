@@ -4,6 +4,7 @@ import { PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
 import { AuthModal } from "./auth-modal";
 import type { GithubLinkPlugin } from "./plugin";
+import { LogLevel } from "./util";
 import { PluginSettings } from "./plugin";
 import type { Verification } from "@octokit/auth-oauth-device/dist-types/types";
 import { auth } from "./github/auth";
@@ -18,7 +19,13 @@ export interface GithubAccount {
 export interface GithubLinkPluginSettings {
 	accounts: GithubAccount[];
 	defaultAccount?: string;
+	logLevel: LogLevel;
 }
+
+export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
+	accounts: [],
+	logLevel: LogLevel.Error,
+};
 
 export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 	authModal: AuthModal | null = null;
@@ -163,9 +170,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 			new Setting(accountContainer)
 				.setName("Orgs and users")
-				.setDesc(
-					"A comma separated list of the GitHub organizations and users this account should be used for.",
-				)
+				.setDesc("A comma separated list of the GitHub organizations and users this account should be used for.")
 				.addTextArea((text) => {
 					text.setValue(account.orgs.join(", "));
 					text.onChange((value) => {

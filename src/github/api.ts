@@ -11,10 +11,9 @@ import type {
 } from "./response";
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 
+import { Logger } from "src/plugin";
 import { RequestError } from "src/util";
 import { requestUrl } from "obsidian";
-
-const debug = false;
 
 const baseApi = "https://api.github.com";
 
@@ -35,14 +34,10 @@ export async function githubRequest(config: RequestUrlParam, token?: string): Pr
 	if (token) {
 		config.headers.Authorization = `Bearer ${token}`;
 	}
-	if (debug) {
-		console.log(config);
-	}
+	Logger.debug(config);
 	try {
 		const response = await requestUrl(config);
-		if (debug) {
-			console.log(response);
-		}
+		Logger.debug(response);
 		return response;
 	} catch (err) {
 		throw new RequestError(err as Error);
