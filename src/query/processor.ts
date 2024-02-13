@@ -4,6 +4,7 @@ import { QueryType, isTableParams, isTableQueryParams, processParams } from "./p
 import { renderTable } from "./output";
 import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "src/github/github";
 import type { IssueListParams, PullListParams } from "src/github/response";
+import { Logger } from "src/plugin";
 
 export async function QueryProcessor(
 	source: string,
@@ -34,12 +35,12 @@ export async function QueryProcessor(
 				renderTable(params, response, el);
 			}
 		} else if (params.queryType === QueryType.PullRequest) {
-			console.log("Rendering pull table...");
+			Logger.debug("Rendering pull table...");
 			const pullParams = params as TableParams<PullListParams>;
 			if (pullParams.org && pullParams.repo) {
 				const response = await getPullRequestsForRepo(pullParams, pullParams.org, pullParams.repo);
-				console.log("Got PRs");
-				console.log(response);
+				Logger.debug("Got PRs");
+				Logger.debug(response);
 				renderTable(params, response, el);
 			}
 		}

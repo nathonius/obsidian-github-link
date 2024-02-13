@@ -24,7 +24,6 @@ export const IssueColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
 			if (!row.timeline_url) {
 				return;
 			}
-			console.log(row);
 			const pullRequestUrl = await getPRForIssue(row.timeline_url);
 			if (!pullRequestUrl) {
 				return;
