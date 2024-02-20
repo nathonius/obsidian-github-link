@@ -1,0 +1,12 @@
+{
+	"image": "mcr.microsoft.com/devcontainers/universal:2",
+	"customizations": {
+		"codespaces": {
+			"repositories": {
+				"nathonius/obsidian-github-link.wiki": {
+					"permissions": "write-all"
+				}
+			}
+		}
+	}
+}
