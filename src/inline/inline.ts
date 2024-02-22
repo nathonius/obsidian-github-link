@@ -73,7 +73,9 @@ function createTagSection(parent: HTMLElement): HTMLElement {
 export async function InlineRenderer(el: HTMLElement) {
 	const githubLinks = el.querySelectorAll<HTMLAnchorElement>(`a.external-link[href^="https://github.com"]`);
 	for (const anchor of Array.from(githubLinks)) {
-		const container = await createTag(anchor.href);
-		anchor.replaceWith(container);
+		if (anchor.href === anchor.innerText) {
+			const container = await createTag(anchor.href);
+			anchor.replaceWith(container);
+		}
 	}
 }

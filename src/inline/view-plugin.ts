@@ -43,7 +43,7 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 		private readonly match = new MatchDecorator({
 			regexp: /(https:\/\/)?github\.com[\S]+/g,
 			decorate: (add, from, to, match, view) => {
-				const shouldRender = this.shouldRender(view, from, to);
+				const shouldRender = this.shouldRender(view, from, to, match);
 				if (shouldRender) {
 					add(
 						from,
@@ -81,7 +81,16 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 			return state.field(editorLivePreviewField);
 		}
 
-		shouldRender(view: EditorView, decorationFrom: number, decorationTo: number) {
+		shouldRender(view: EditorView, decorationFrom: number, decorationTo: number, match: RegExpMatchArray) {
+			// Ignore matches inside a markdown link
+			const input = match.input ?? '';
+			const index = match.index ?? 0;
+			const matchValue = match[0];
+			const endIndex = index + matchValue.length;
+			if (input[index - 1] === '(' && matchValue.endsWith(')')) {
+				return false;
+			}
+
 			const overlap = view.state.selection.ranges.some((r) => {
 				if (r.from <= decorationFrom) {
 					return r.to >= decorationFrom;
