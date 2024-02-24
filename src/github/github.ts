@@ -42,7 +42,11 @@ export async function getIssue(org: string, repo: string, issue: number): Promis
 	return response;
 }
 
-export async function getMyIssues(params: IssueListParams, org?: string): Promise<IssueListResponse> {
+export async function getMyIssues(
+	params: IssueListParams,
+	org?: string,
+	skipCache = false,
+): Promise<IssueListResponse> {
 	const account = getAccount(org);
 	if (!account || !account.token) {
 		return [];
@@ -67,7 +71,7 @@ export async function getMyIssues(params: IssueListParams, org?: string): Promis
 		_params.labels = _params.labels.join(",");
 	}
 	const cachedValue = cache.getIssueList(account.name, _params);
-	if (cachedValue) {
+	if (cachedValue && !skipCache) {
 		return Promise.resolve(cachedValue);
 	}
 
@@ -76,7 +80,12 @@ export async function getMyIssues(params: IssueListParams, org?: string): Promis
 	return response;
 }
 
-export async function getIssuesForRepo(params: IssueListParams, org: string, repo: string): Promise<IssueListResponse> {
+export async function getIssuesForRepo(
+	params: IssueListParams,
+	org: string,
+	repo: string,
+	skipCache = false,
+): Promise<IssueListResponse> {
 	const _params = sanitizeObject(params, {
 		assignee: true,
 		creator: true,
@@ -97,7 +106,7 @@ export async function getIssuesForRepo(params: IssueListParams, org: string, rep
 		_params.labels = _params.labels.join(",");
 	}
 	const cachedValue = cache.getIssueListForRepo(org, repo, _params);
-	if (cachedValue) {
+	if (cachedValue && !skipCache) {
 		return Promise.resolve(cachedValue);
 	}
 
@@ -121,6 +130,7 @@ export async function getPullRequestsForRepo(
 	params: PullListParams,
 	org: string,
 	repo: string,
+	skipCache = false,
 ): Promise<PullListResponse> {
 	const _params = sanitizeObject(params, {
 		org: false,
@@ -134,7 +144,7 @@ export async function getPullRequestsForRepo(
 		state: true,
 	});
 	const cachedValue = cache.getPullListForRepo(org, repo, _params);
-	if (cachedValue) {
+	if (cachedValue && !skipCache) {
 		return Promise.resolve(cachedValue);
 	}
 
@@ -143,9 +153,9 @@ export async function getPullRequestsForRepo(
 	return response;
 }
 
-export async function searchIssues(query: string, org?: string): Promise<IssueSearchResponse> {
+export async function searchIssues(query: string, org?: string, skipCache = false): Promise<IssueSearchResponse> {
 	const cachedResponse = cache.getIssueQuery(query);
-	if (cachedResponse) {
+	if (cachedResponse && !skipCache) {
 		return Promise.resolve(cachedResponse);
 	}
 

@@ -6,6 +6,7 @@ import { IssueColumns } from "./column/issue";
 import { PullRequestColumns } from "./column/pull-request";
 import { QueryType } from "./params";
 import { RepoColumns } from "./column/repo";
+import { setIcon } from "obsidian";
 
 const ALL_COLUMNS = {
 	[QueryType.PullRequest]: PullRequestColumns,
@@ -17,9 +18,23 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 	params: BaseParams,
 	result: T,
 	el: HTMLElement,
+	renderFn: (element: HTMLElement, skipCache?: boolean) => Promise<void>,
 ) {
-	const wrapper = el.createDiv({ cls: "github-link-table-wrapper" });
-	const table = wrapper.createEl("table", { cls: "github-link-table" });
+	el.empty();
+	const tableWrapper = el.createDiv({ cls: "github-link-table-wrapper" });
+	const tableScrollWrapper = tableWrapper.createDiv({ cls: "github-link-table-scroll-wrapper" });
+	const table = tableScrollWrapper.createEl("table", { cls: "github-link-table" });
+
+	if (params.refresh) {
+		const refresh = tableWrapper.createDiv({ cls: "github-link-table-refresh" });
+		const refreshButton = refresh.createEl("button", {
+			cls: "clickable-icon",
+			attr: { "aria-label": "Refresh Results" },
+		});
+		refreshButton.addEventListener("click", () => renderFn(el, true));
+		setIcon(refreshButton, "refresh-cw");
+	}
+
 	const thead = table.createEl("thead");
 	let columns = params.columns;
 	if (!columns || columns.length === 0) {

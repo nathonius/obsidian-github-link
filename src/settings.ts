@@ -205,6 +205,32 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 					});
 				});
 		}
+
+		new Setting(containerEl)
+			.setName("Log Level")
+			.setDesc("Enable debug logging.")
+			.addExtraButton((button) => {
+				button.setIcon("rotate-ccw");
+				button.setTooltip("Restore default");
+				button.onClick(async () => {
+					PluginSettings.logLevel = DEFAULT_SETTINGS.logLevel;
+					await this.saveSettings();
+					this.display();
+				});
+			})
+			.addDropdown((dropdown) => {
+				dropdown.addOptions({
+					[LogLevel.Error]: "Error",
+					[LogLevel.Warn]: "Warn",
+					[LogLevel.Info]: "Info",
+					[LogLevel.Debug]: "Debug",
+				});
+				dropdown.setValue(PluginSettings.logLevel.toString());
+				dropdown.onChange((value) => {
+					PluginSettings.logLevel = Number(value);
+					this.saveSettings();
+				});
+			});
 	}
 
 	private saveSettings() {

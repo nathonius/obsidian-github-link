@@ -16,6 +16,7 @@ export interface BaseParams {
 	outputType: OutputType;
 	queryType: QueryType;
 	columns: string[];
+	refresh?: boolean;
 }
 
 export type TableQueryParams<T> = Omit<T, "q"> & BaseParams & { query: string };
@@ -29,6 +30,8 @@ export function processParams(source: string): BaseParams | null {
 		console.error(`Github Link: YAML Parsing failed, attempting simplistic parsing\n${e}`);
 		params = Object.fromEntries(source.split("\n").map((l) => l.split(/:\s?/)));
 	}
+
+	params.refresh = params.refresh ?? true;
 
 	return params ?? null;
 }
