@@ -233,10 +233,21 @@ body.theme-dark {
 	line-height: var(--line-height-normal);
 }
 
-.github-link-table-wrapper {
+.github-link-table-scroll-wrapper {
 	display: block;
 	overflow-x: auto;
 	white-space: nowrap;
+}
+
+.github-link-table-refresh {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.github-link-table-refresh > button > svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+	stroke-width: var(--icon-s-stroke-width);
 }
 
 .github-link-table th {
