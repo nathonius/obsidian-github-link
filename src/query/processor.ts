@@ -1,5 +1,5 @@
 import { type MarkdownPostProcessorContext } from "obsidian";
-import type { TableParams } from "./params";
+import type { TableParams, TableQueryParams } from "./params";
 import { QueryType, isTableParams, isTableQueryParams, processParams } from "./params";
 import { renderTable } from "./output";
 import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "src/github/github";
@@ -12,6 +12,8 @@ export async function QueryProcessor(
 	_ctx: MarkdownPostProcessorContext,
 ): Promise<void> {
 	const params = processParams(source);
+
+	Logger.debug(params);
 
 	if (!params) {
 		// TODO: show an error instead
@@ -26,7 +28,8 @@ export async function QueryProcessor(
 		let response: { items: unknown[] } | unknown[] | undefined = undefined;
 		if (isTableQueryParams(params)) {
 			if (params.queryType === QueryType.Issue || params.queryType === QueryType.PullRequest) {
-				response = await searchIssues(params.query, undefined, skipCache);
+				const queryParams = params as TableQueryParams<unknown>;
+				response = await searchIssues(params.query, queryParams.org, skipCache);
 			}
 		} else if (isTableParams(params)) {
 			if (params.queryType === QueryType.Issue) {

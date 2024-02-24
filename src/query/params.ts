@@ -19,7 +19,7 @@ export interface BaseParams {
 	refresh?: boolean;
 }
 
-export type TableQueryParams<T> = Omit<T, "q"> & BaseParams & { query: string };
+export type TableQueryParams<T> = Omit<T, "q"> & BaseParams & { query: string; org?: string };
 export type TableParams<T extends IssueListParams | PullListParams> = T & BaseParams;
 
 export function processParams(source: string): BaseParams | null {
