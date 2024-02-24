@@ -25,6 +25,10 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 	if (!columns || columns.length === 0) {
 		columns = DEFAULT_COLUMNS[params.queryType];
 	}
+
+	// Ensure columns are lowercase
+	columns = columns.map((c) => c.toLowerCase());
+
 	for (const col of columns) {
 		const th = thead.createEl("th");
 		// Get predefined header if available
