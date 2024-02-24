@@ -15,19 +15,31 @@ import { api, githubRequest } from "./api";
 
 import { Cache } from "./cache";
 import type { GithubAccount } from "src/settings";
-import { PluginSettings } from "src/plugin";
+import { Logger, PluginSettings } from "src/plugin";
 
 const cache = new Cache();
 
 function getAccount(org?: string): GithubAccount | undefined {
+	Logger.debug(`Getting account and token for org ${org}`);
 	const account =
 		PluginSettings.accounts.find((acc) => acc.orgs.some((savedOrg) => savedOrg === org)) ??
 		PluginSettings.accounts.find((acc) => acc.id === PluginSettings.defaultAccount);
+	Logger.debug(account);
 	return account;
 }
 
-function getToken(org?: string): string | undefined {
-	const account = getAccount(org);
+function getToken(org?: string, query?: string): string | undefined {
+	let _org = org;
+
+	// Try and parse org from the query
+	if (!org && query) {
+		const match = query.match(/repo:(.+)\//);
+		if (match && match[0] !== null) {
+			_org = match[1];
+		}
+	}
+
+	const account = getAccount(_org);
 	return account?.token;
 }
 
@@ -159,7 +171,7 @@ export async function searchIssues(query: string, org?: string, skipCache = fals
 		return Promise.resolve(cachedResponse);
 	}
 
-	const response = await api.searchIssues(query, getToken(org));
+	const response = await api.searchIssues(query, getToken(org, query));
 	cache.setIssueQuery(query, response);
 	return response;
 }
@@ -170,7 +182,7 @@ export async function searchRepos(query: string, org?: string): Promise<RepoSear
 		return Promise.resolve(cachedResponse);
 	}
 
-	const response = await api.searchRepos(query, getToken(org));
+	const response = await api.searchRepos(query, getToken(org, query));
 	cache.setRepoQuery(query, response);
 	return response;
 }
