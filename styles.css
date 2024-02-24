@@ -233,6 +233,12 @@ body.theme-dark {
 	line-height: var(--line-height-normal);
 }
 
+.github-link-table-wrapper {
+	display: block;
+	overflow-x: auto;
+	white-space: nowrap;
+}
+
 .github-link-table th {
 	font-weight: var(--font-bold);
 }

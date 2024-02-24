@@ -18,7 +18,8 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 	result: T,
 	el: HTMLElement,
 ) {
-	const table = el.createEl("table", { cls: "github-link-table" });
+	const wrapper = el.createDiv({ cls: "github-link-table-wrapper" });
+	const table = wrapper.createEl("table", { cls: "github-link-table" });
 	const thead = table.createEl("thead");
 	let columns = params.columns;
 	if (!columns || columns.length === 0) {
