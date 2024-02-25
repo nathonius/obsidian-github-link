@@ -1,5 +1,7 @@
 # GitHub Link
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nathonius_obsidian-github-link&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nathonius_obsidian-github-link)
+
 **Obsidian + GitHub ❤️**
 
 Transform boring GitHub links in notes into tags with rich content from GitHub, and query issues and pull requests within your notes.
