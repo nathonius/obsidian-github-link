@@ -3,6 +3,7 @@ import type {
 	IssueListParams,
 	IssueListResponse,
 	IssueResponse,
+	IssueSearchParams,
 	IssueSearchResponse,
 	PullListParams,
 	PullListResponse,
@@ -103,8 +104,9 @@ async function searchRepos(query: string, token?: string): Promise<RepoSearchRes
 	return result.json as RepoSearchResponse;
 }
 
-async function searchIssues(query: string, token?: string): Promise<IssueSearchResponse> {
-	const result = await githubRequest({ url: `${baseApi}/search/issues?q=${encodeURIComponent(query)}` }, token);
+async function searchIssues(params: IssueSearchParams, token?: string): Promise<IssueSearchResponse> {
+	const url = addParams(`${baseApi}/search/issues`, params);
+	const result = await githubRequest({ url }, token);
 	return result.json as IssueSearchResponse;
 }
 

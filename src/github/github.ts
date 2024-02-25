@@ -2,6 +2,7 @@ import type {
 	IssueListParams,
 	IssueListResponse,
 	IssueResponse,
+	IssueSearchParams,
 	IssueSearchResponse,
 	IssueTimelineResponse,
 	PullListParams,
@@ -10,6 +11,7 @@ import type {
 	RepoSearchResponse,
 	TimelineCrossReferencedEvent,
 } from "./response";
+import type { RemoveIndexSignature } from "src/util";
 import { RequestError, sanitizeObject } from "src/util";
 import { api, githubRequest } from "./api";
 
@@ -79,6 +81,9 @@ export async function getMyIssues(
 		org: false,
 		repo: false,
 	});
+
+	setPageSize(_params);
+
 	if (Array.isArray(_params.labels)) {
 		_params.labels = _params.labels.join(",");
 	}
@@ -114,6 +119,9 @@ export async function getIssuesForRepo(
 		repo: false,
 		filter: false,
 	});
+
+	setPageSize(_params);
+
 	if (Array.isArray(_params.labels)) {
 		_params.labels = _params.labels.join(",");
 	}
@@ -155,6 +163,9 @@ export async function getPullRequestsForRepo(
 		sort: true,
 		state: true,
 	});
+
+	setPageSize(_params);
+
 	const cachedValue = cache.getPullListForRepo(org, repo, _params);
 	if (cachedValue && !skipCache) {
 		return Promise.resolve(cachedValue);
@@ -165,13 +176,33 @@ export async function getPullRequestsForRepo(
 	return response;
 }
 
-export async function searchIssues(query: string, org?: string, skipCache = false): Promise<IssueSearchResponse> {
+export async function searchIssues(
+	params: RemoveIndexSignature<IssueSearchParams>,
+	query: string,
+	org?: string,
+	skipCache = false,
+): Promise<IssueSearchResponse> {
+	const _params = sanitizeObject(params, {
+		q: false,
+		baseUrl: false,
+		headers: false,
+		mediaType: false,
+		order: true,
+		page: true,
+		per_page: true,
+		request: false,
+		sort: true,
+	});
+
+	setPageSize(_params);
+	_params.q = query;
+
 	const cachedResponse = cache.getIssueQuery(query);
 	if (cachedResponse && !skipCache) {
 		return Promise.resolve(cachedResponse);
 	}
 
-	const response = await api.searchIssues(query, getToken(org, query));
+	const response = await api.searchIssues(_params, getToken(org, query));
 	cache.setIssueQuery(query, response);
 	return response;
 }
@@ -211,4 +242,8 @@ export async function getPRForIssue(timelineUrl: string, org?: string): Promise<
 		return evt.event === "cross-referenced" && evt.source?.issue?.pull_request?.html_url;
 	}) as TimelineCrossReferencedEvent | undefined;
 	return crossRefEvent?.source.issue?.pull_request?.html_url ?? null;
+}
+
+function setPageSize(params: { per_page?: number }): void {
+	params.per_page = params.per_page ?? PluginSettings.defaultPageSize;
 }

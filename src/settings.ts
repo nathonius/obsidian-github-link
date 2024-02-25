@@ -19,11 +19,13 @@ export interface GithubAccount {
 export interface GithubLinkPluginSettings {
 	accounts: GithubAccount[];
 	defaultAccount?: string;
+	defaultPageSize: number;
 	logLevel: LogLevel;
 }
 
 export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
 	accounts: [],
+	defaultPageSize: 10,
 	logLevel: LogLevel.Error,
 };
 
@@ -205,6 +207,28 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 					});
 				});
 		}
+
+		new Setting(containerEl)
+			.setName("Default result size")
+			.setDesc("The maximum number of results that will be included in a table unless specified otherwise.")
+			.addExtraButton((button) => {
+				button.setIcon("rotate-ccw");
+				button.setTooltip("Restore default");
+				button.onClick(async () => {
+					PluginSettings.defaultPageSize = DEFAULT_SETTINGS.defaultPageSize;
+					await this.saveSettings();
+					this.display();
+				});
+			})
+			.addSlider((slider) => {
+				slider.setLimits(0, 30, 1);
+				slider.setValue(PluginSettings.defaultPageSize);
+				slider.setDynamicTooltip();
+				slider.onChange((value) => {
+					PluginSettings.defaultPageSize = value;
+					this.saveSettings();
+				});
+			});
 
 		new Setting(containerEl)
 			.setName("Log Level")
