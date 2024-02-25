@@ -3,7 +3,7 @@ import type { TableParams, TableQueryParams } from "./params";
 import { QueryType, isTableParams, isTableQueryParams, processParams } from "./params";
 import { renderTable } from "./output";
 import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "src/github/github";
-import type { IssueListParams, PullListParams } from "src/github/response";
+import type { IssueListParams, IssueSearchParams, PullListParams } from "src/github/response";
 import { Logger } from "src/plugin";
 
 export async function QueryProcessor(
@@ -28,8 +28,8 @@ export async function QueryProcessor(
 		let response: { items: unknown[] } | unknown[] | undefined = undefined;
 		if (isTableQueryParams(params)) {
 			if (params.queryType === QueryType.Issue || params.queryType === QueryType.PullRequest) {
-				const queryParams = params as TableQueryParams<unknown>;
-				response = await searchIssues(params.query, queryParams.org, skipCache);
+				const queryParams = params as TableQueryParams<IssueSearchParams>;
+				response = await searchIssues(params, params.query, queryParams.org, skipCache);
 			}
 		} else if (isTableParams(params)) {
 			if (params.queryType === QueryType.Issue) {

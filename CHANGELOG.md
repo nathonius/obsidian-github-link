@@ -8,34 +8,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!--
 ## [0.0.0] - YYYY-MM-DD
 
-### Added
+### Changed
 
 ### Fixed
 
-### Changed
-
-### Removed
 -->
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### Changed
+
+- Default page size set to 10, and configurable in settings
+- Tables include a refresh button
+- Log level setting for debugging
+
+### Fixed
+
+- Search queries for private repos work when not the default account
+- Column names are now case-insensitive
+- Tables horizontally scroll when appropriate
+- GitHub links within markdown links are not transformed into tags
 
 ## [0.3.0] - 2024-02-09
 
-### Added
+### Changed
 
 - Default column set for simple tables
+- Some documentation and CI improvements
 
 ### Fixed
 
 - Removed some extraneous logging
 
-### Changed
-
-- Some documentation and CI improvements
-
 ## [0.2.0] - 2024-02-09
 
-### Added
+### Changed
 
 - Added columns for issue results
 - Added support for simpler queries using dedicated endpoints for issues and pull requests
