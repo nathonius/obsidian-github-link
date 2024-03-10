@@ -21,12 +21,14 @@ export interface GithubLinkPluginSettings {
 	defaultAccount?: string;
 	defaultPageSize: number;
 	logLevel: LogLevel;
+	tagTooltips: boolean;
 }
 
 export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
 	accounts: [],
 	defaultPageSize: 10,
 	logLevel: LogLevel.Error,
+	tagTooltips: false,
 };
 
 export class GithubLinkPluginSettingsTab extends PluginSettingTab {
@@ -231,7 +233,18 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Log Level")
+			.setName("Status tooltips")
+			.setDesc("Add a tooltip to issue and pull request status icons with status text")
+			.addToggle((toggle) => {
+				toggle.setValue(PluginSettings.tagTooltips);
+				toggle.onChange((value) => {
+					PluginSettings.tagTooltips = value;
+					this.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Log level")
 			.setDesc("Enable debug logging.")
 			.addExtraButton((button) => {
 				button.setIcon("rotate-ccw");
