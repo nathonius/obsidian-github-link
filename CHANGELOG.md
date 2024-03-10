@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [0.5.0] - 2024-03-09
+
+### Changed
+
+- Documentation has moved to the new wiki
+- New option to show tooltips on status icons
+- More icons have been added to make issue and PR statuses clearer
+
+### Fixed
+
+- Issues closed as not planned will be gray instead of red
+
 ## [0.4.0] - 2024-02-24
 
 ### Changed
