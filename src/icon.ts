@@ -15,10 +15,12 @@ const IssueIcon: Readonly<Record<IssueStatus, string>> = {
 
 export function setPRIcon(icon: HTMLElement, status: IssueStatus) {
 	setIcon(icon, PRIcon[status]);
+	icon.classList.add("pull-request");
 	icon.dataset.status = status;
 }
 
 export function setIssueIcon(icon: HTMLElement, status: IssueStatus) {
 	setIcon(icon, IssueIcon[status]);
+	icon.classList.add("issue");
 	icon.dataset.status = status;
 }

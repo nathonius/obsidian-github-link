@@ -194,6 +194,12 @@ body.theme-dark {
 .github-link-status-icon[data-status="closed"] {
 	color: var(--gh-color-closed-fg);
 }
+.github-link-status-icon.pull-request[data-status="closed"] {
+	color: var(--gh-color-closed-fg);
+}
+.github-link-status-icon.issue[data-status="closed"] {
+	color: var(--gh-color-fg-muted);
+}
 .github-link-status-icon[data-status="done"] {
 	color: var(--gh-color-done-fg);
 }
@@ -206,6 +212,16 @@ body.theme-dark {
 .github-link-inline-section:has(> .github-link-inline-icon[data-status="closed"]) {
 	background-color: var(--gh-color-closed-subtle);
 	border-color: var(--gh-color-closed-emphasis);
+}
+
+.github-link-inline-section:has(> .github-link-inline-icon.pull-request[data-status="closed"]) {
+	background-color: var(--gh-color-closed-subtle);
+	border-color: var(--gh-color-closed-emphasis);
+}
+
+.github-link-inline-section:has(> .github-link-inline-icon.issue[data-status="closed"]) {
+	background-color: var(--gh-color-canvas-subtle);
+	border-color: var(--gh-color-fg-on-emphasis);
 }
 
 .github-link-inline-section:has(> .github-link-inline-icon[data-status="done"]) {
