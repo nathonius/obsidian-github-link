@@ -13,7 +13,7 @@ export const IssueColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
 			const wrapper = el.createDiv({ cls: "github-link-table-status" });
 			const status = getSearchResultIssueStatus(row);
 			const icon = wrapper.createSpan({ cls: "github-link-status-icon" });
-			setIssueIcon(icon, status, row.state_reason);
+			setIssueIcon(icon, status);
 			wrapper.createSpan({ text: row.state_reason === "not_planned" ? "Not Planned" : titleCase(status) });
 		},
 	},

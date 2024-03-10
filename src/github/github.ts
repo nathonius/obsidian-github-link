@@ -17,16 +17,14 @@ import { api, githubRequest } from "./api";
 
 import { Cache } from "./cache";
 import type { GithubAccount } from "src/settings";
-import { Logger, PluginSettings } from "src/plugin";
+import { PluginSettings } from "src/plugin";
 
 const cache = new Cache();
 
 function getAccount(org?: string): GithubAccount | undefined {
-	Logger.debug(`Getting account and token for org ${org}`);
 	const account =
 		PluginSettings.accounts.find((acc) => acc.orgs.some((savedOrg) => savedOrg === org)) ??
 		PluginSettings.accounts.find((acc) => acc.id === PluginSettings.defaultAccount);
-	Logger.debug(account);
 	return account;
 }
 
