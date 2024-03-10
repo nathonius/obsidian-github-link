@@ -14,6 +14,8 @@ export class GithubLinkPlugin extends Plugin {
 	async onload() {
 		PluginSettings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		Logger = verboseFactory(PluginSettings.logLevel);
+		// Logger.debug(getIconIds());
+
 		this.addSettingTab(new GithubLinkPluginSettingsTab(this.app, this));
 		this.registerMarkdownPostProcessor(InlineRenderer);
 		this.registerEditorExtension(createInlineViewPlugin(this));

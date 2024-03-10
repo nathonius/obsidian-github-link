@@ -1,9 +1,10 @@
-import { getPRStatus } from "src/github/response";
+import { getIssueStatus, getPRStatus } from "src/github/response";
 import { getIssue, getPullRequest } from "../github/github";
 
 import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
-import { setPRIcon } from "src/icon";
+import { setIssueIcon, setPRIcon } from "src/icon";
+import { Logger } from "src/plugin";
 
 export async function createTag(href: string) {
 	const parsedUrl = parseUrl(href);
@@ -35,13 +36,11 @@ export async function createTag(href: string) {
 		// Get issue info
 		if (parsedUrl.issue !== undefined) {
 			const issue = await getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue);
+			Logger.debug("Rendering tag for issue:");
+			Logger.debug(issue);
 			if (issue.title) {
-				setIcon(icon, "square-dot");
-				if (issue.pull_request?.merged_at) {
-					icon.dataset.status = "done";
-				} else {
-					icon.dataset.status = issue.state;
-				}
+				const status = getIssueStatus(issue);
+				setIssueIcon(icon, status);
 				createTagSection(container).createSpan({
 					cls: "github-link-inline-issue-title",
 					text: issue.title,
@@ -52,6 +51,8 @@ export async function createTag(href: string) {
 		// Get PR info
 		if (parsedUrl.pr !== undefined) {
 			const pull = await getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr);
+			Logger.debug("Rendering tag for pull request:");
+			Logger.debug(pull);
 			if (pull.title) {
 				const status = getPRStatus(pull);
 				setPRIcon(icon, status);

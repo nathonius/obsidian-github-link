@@ -61,6 +61,16 @@ export function getSearchResultIssueStatus(issue: IssueSearchResponse["items"][n
 	}
 }
 
+export function getIssueStatus(issue: IssueResponse): IssueStatus {
+	if (issue.state === "open") {
+		return IssueStatus.Open;
+	} else if (issue.state_reason === "completed") {
+		return IssueStatus.Done;
+	} else {
+		return IssueStatus.Closed;
+	}
+}
+
 export function getPRStatus(pr: PullResponse): IssueStatus {
 	if (pr.merged) {
 		return IssueStatus.Done;

@@ -4,7 +4,6 @@ import { QueryType, isTableParams, isTableQueryParams, processParams } from "./p
 import { renderTable } from "./output";
 import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "src/github/github";
 import type { IssueListParams, IssueSearchParams, PullListParams } from "src/github/response";
-import { Logger } from "src/plugin";
 
 export async function QueryProcessor(
 	source: string,
@@ -13,8 +12,6 @@ export async function QueryProcessor(
 ): Promise<void> {
 	const params = processParams(source);
 
-	Logger.debug(params);
-
 	if (!params) {
 		// TODO: show an error instead
 		el.setText(source);
@@ -22,9 +19,6 @@ export async function QueryProcessor(
 	}
 
 	const renderFn = async (element: HTMLElement, skipCache = false) => {
-		if (skipCache) {
-			Logger.debug("Skipping cache for this render.");
-		}
 		let response: { items: unknown[] } | unknown[] | undefined = undefined;
 		if (isTableQueryParams(params)) {
 			if (params.queryType === QueryType.Issue || params.queryType === QueryType.PullRequest) {
@@ -40,12 +34,9 @@ export async function QueryProcessor(
 					response = await getMyIssues(issueParams, issueParams.org, skipCache);
 				}
 			} else if (params.queryType === QueryType.PullRequest) {
-				Logger.debug("Rendering pull table...");
 				const pullParams = params as TableParams<PullListParams>;
 				if (pullParams.org && pullParams.repo) {
 					response = await getPullRequestsForRepo(pullParams, pullParams.org, pullParams.repo, skipCache);
-					Logger.debug("Got PRs");
-					Logger.debug(response);
 				}
 			}
 		}
