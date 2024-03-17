@@ -13,7 +13,7 @@ import type {
 } from "./response";
 import type { RemoveIndexSignature } from "src/util";
 import { RequestError, sanitizeObject } from "src/util";
-import { api, githubRequest } from "./api";
+import { api, queueRequest } from "./api";
 
 import { Cache } from "./cache";
 import type { GithubAccount } from "src/settings";
@@ -220,7 +220,7 @@ export async function getPRForIssue(timelineUrl: string, org?: string): Promise<
 	let response = cache.getGeneric(timelineUrl) as IssueTimelineResponse | null;
 	if (response === null) {
 		try {
-			response = (await githubRequest({ url: timelineUrl }, getToken(org))).json;
+			response = (await queueRequest({ url: timelineUrl }, getToken(org))).json;
 		} catch (err) {
 			// 404 means there's no timeline for this, we can ignore the error
 			if (err instanceof RequestError && err.status === 404) {
