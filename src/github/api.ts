@@ -12,10 +12,14 @@ import type {
 } from "./response";
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 
-import { RequestError } from "src/util";
-import { requestUrl } from "obsidian";
+import { RequestError, promiseWithResolvers } from "src/util";
+import { Notice, requestUrl } from "obsidian";
+import { Logger } from "src/plugin";
+import Queue from "queue";
 
 const baseApi = "https://api.github.com";
+let rateLimitReset: Date | null = null;
+const q = new Queue({ autostart: true, concurrency: 1 });
 
 export function addParams(href: string, params: Record<string, unknown>): string {
 	const url = new URL(href);
@@ -25,7 +29,27 @@ export function addParams(href: string, params: Record<string, unknown>): string
 	return url.toString();
 }
 
-export async function githubRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
+export async function queueRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
+	const { resolve, promise } = promiseWithResolvers<RequestUrlResponse>();
+	q.push(() => {
+		return githubRequest(config, token).then((result) => {
+			resolve(result);
+		});
+	});
+	return promise;
+}
+
+async function githubRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
+	if (rateLimitReset !== null && rateLimitReset > new Date()) {
+		Logger.warn(
+			`GitHub rate limit exceeded. No more requests will be made until ${rateLimitReset.toLocaleTimeString()}`,
+		);
+		throw new Error("GitHub rate limit exceeded.");
+	} else if (rateLimitReset !== null) {
+		// Rate limit wait has passed, we can make requests again.
+		rateLimitReset = null;
+	}
+
 	if (!config.headers) {
 		config.headers = {};
 	}
@@ -35,7 +59,31 @@ export async function githubRequest(config: RequestUrlParam, token?: string): Pr
 		config.headers.Authorization = `Bearer ${token}`;
 	}
 	try {
+		Logger.debug(`Request: ${config.url}`);
+		Logger.debug(config);
 		const response = await requestUrl(config);
+		Logger.debug(`Response:`);
+		Logger.debug(response);
+
+		// Handle rate limit
+		const retryAfterSeconds = parseInt(response.headers["retry-after"]);
+		const rateLimitRemaining = parseInt(response.headers["x-ratelimit-remaining"]);
+		const rateLimitResetSeconds = parseInt(response.headers["x-ratelimit-reset"]);
+		if (!isNaN(retryAfterSeconds)) {
+			Logger.warn(`Got retry-after header with value ${retryAfterSeconds}`);
+			await sleep(retryAfterSeconds * 1000);
+			return githubRequest(config, token);
+		} else if (!isNaN(rateLimitRemaining) && rateLimitRemaining === 0 && !isNaN(rateLimitResetSeconds)) {
+			rateLimitReset = new Date(rateLimitResetSeconds * 1000);
+			let message = `GitHub rate limit exceeded. No more requests will be made until after ${rateLimitReset.toLocaleTimeString()}`;
+			if (!token) {
+				message += " Consider adding an authentication token for a significantly higher rate limit.";
+			}
+			new Notice(message);
+		} else if (!isNaN(rateLimitRemaining) && rateLimitRemaining <= 5) {
+			Logger.warn("GitHub rate limit approaching.");
+		}
+
 		return response;
 	} catch (err) {
 		throw new RequestError(err as Error);
@@ -43,14 +91,14 @@ export async function githubRequest(config: RequestUrlParam, token?: string): Pr
 }
 
 async function getIssue(org: string, repo: string, issue: number, token?: string): Promise<IssueResponse> {
-	const result = await githubRequest({ url: `${baseApi}/repos/${org}/${repo}/issues/${issue}` }, token);
+	const result = await queueRequest({ url: `${baseApi}/repos/${org}/${repo}/issues/${issue}` }, token);
 
 	return result.json as IssueResponse;
 }
 
 async function listIssuesForToken(params: IssueListParams = {}, token: string): Promise<IssueListResponse> {
 	const url = addParams(`${baseApi}/issues`, params as Record<string, unknown>);
-	const result = await githubRequest({ url }, token);
+	const result = await queueRequest({ url }, token);
 	return result.json as IssueListResponse;
 }
 
@@ -61,12 +109,12 @@ async function listIssuesForRepo(
 	token?: string,
 ): Promise<IssueListResponse> {
 	const url = addParams(`${baseApi}/repos/${org}/${repo}/issues`, params as Record<string, unknown>);
-	const result = await githubRequest({ url }, token);
+	const result = await queueRequest({ url }, token);
 	return result.json as IssueListResponse;
 }
 
 async function getPullRequest(org: string, repo: string, pr: number, token?: string): Promise<PullResponse> {
-	const result = await githubRequest(
+	const result = await queueRequest(
 		{
 			url: `${baseApi}/repos/${org}/${repo}/pulls/${pr}`,
 		},
@@ -82,12 +130,12 @@ async function listPullRequestsForRepo(
 	token?: string,
 ): Promise<PullListResponse> {
 	const url = addParams(`${baseApi}/repos/${org}/${repo}/pulls`, params as Record<string, unknown>);
-	const result = await githubRequest({ url }, token);
+	const result = await queueRequest({ url }, token);
 	return result.json as PullListResponse;
 }
 
 async function getCode(org: string, repo: string, path: string, branch: string, token?: string): Promise<CodeResponse> {
-	const result = await githubRequest(
+	const result = await queueRequest(
 		{
 			url: `${baseApi}/repos/${org}/${repo}/contents/${path}?ref=${branch}`,
 		},
@@ -97,7 +145,7 @@ async function getCode(org: string, repo: string, path: string, branch: string, 
 }
 
 async function searchRepos(query: string, token?: string): Promise<RepoSearchResponse> {
-	const result = await githubRequest({ url: `${baseApi}/search/repositories?q=${encodeURIComponent(query)}` }, token);
+	const result = await queueRequest({ url: `${baseApi}/search/repositories?q=${encodeURIComponent(query)}` }, token);
 	return result.json as RepoSearchResponse;
 }
 

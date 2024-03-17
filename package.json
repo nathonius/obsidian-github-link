@@ -28,6 +28,7 @@
 		"obsidian": "latest",
 		"octokit": "^3.1.2",
 		"prettier": "^3.2.5",
+		"queue": "^7.0.0",
 		"tslib": "2.6.2",
 		"typescript": "5.3.3"
 	},

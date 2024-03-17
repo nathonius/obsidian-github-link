@@ -28,7 +28,7 @@ export const IssueColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
 			if (!pullRequestUrl) {
 				return;
 			}
-			const tag = await createTag(pullRequestUrl);
+			const tag = createTag(pullRequestUrl);
 			el.appendChild(tag);
 		},
 	},

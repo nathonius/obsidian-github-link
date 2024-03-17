@@ -119,6 +119,27 @@ export const DateFormat = {
 	}),
 };
 
+export function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+}
+
+/**
+ * Implementation of Promise.withResolvers.
+ * See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers
+ */
+export function promiseWithResolvers<T>() {
+	let resolve!: (value: T | PromiseLike<T>) => void;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let reject!: (reason?: any) => void;
+	const promise = new Promise<T>((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+	return { resolve, reject, promise };
+}
+
 export class RequestError implements Error {
 	name: string;
 	message: string;
