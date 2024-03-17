@@ -16,6 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [0.5.1] - 2024-03-16
+
+### Changed
+
+- Some extra logic to attempt to handle rate limit errors
+
+### Fixed
+
+- Corrected caching behavior of individual issues and PRs
+
 ## [0.5.0] - 2024-03-09
 
 ### Changed
@@ -65,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[0.5.1]: https://github.com/nathonius/obsidian-github-link/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/nathonius/obsidian-github-link/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/nathonius/obsidian-github-link/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/nathonius/obsidian-github-link/compare/0.2.0...0.3.0
