@@ -1,11 +1,11 @@
-import { getIssueStatus, getPRStatus } from "src/github/response";
+import { IssueStatus, getIssueStatus, getPRStatus } from "src/github/response";
 import { getIssue, getPullRequest } from "../github/github";
 
 import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
 import { setIssueIcon, setPRIcon } from "src/icon";
 
-export async function createTag(href: string) {
+export function createTag(href: string) {
 	const parsedUrl = parseUrl(href);
 	const container = createEl("a", { cls: "github-link-inline", href });
 
@@ -34,31 +34,38 @@ export async function createTag(href: string) {
 	if (parsedUrl.repo && parsedUrl.org) {
 		// Get issue info
 		if (parsedUrl.issue !== undefined) {
-			const issue = await getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue);
-			if (issue.title) {
-				const status = getIssueStatus(issue);
-				setIssueIcon(icon, status);
-				createTagSection(container).createSpan({
-					cls: "github-link-inline-issue-title",
-					text: issue.title,
-				});
-			}
+			setIssueIcon(icon, IssueStatus.Open);
+			const issueContainer = createTagSection(container).createSpan({
+				cls: "github-link-inline-issue-title",
+				text: `${parsedUrl.issue}`,
+			});
+			getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue).then((issue) => {
+				if (issue.title) {
+					const status = getIssueStatus(issue);
+					setIssueIcon(icon, status);
+					issueContainer.setText(issue.title);
+				}
+			});
 		}
 
 		// Get PR info
 		if (parsedUrl.pr !== undefined) {
-			const pull = await getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr);
-			if (pull.title) {
-				const status = getPRStatus(pull);
-				setPRIcon(icon, status);
-				createTagSection(container).createSpan({
-					cls: "github-link-inline-pr-title",
-					text: pull.title,
-				});
-			}
+			setPRIcon(icon, IssueStatus.Open);
+			const prContainer = createTagSection(container).createSpan({
+				cls: "github-link-inline-pr-title",
+				text: `${parsedUrl.pr}`,
+			});
+			getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr).then((pr) => {
+				if (pr.title) {
+					const status = getPRStatus(pr);
+					setPRIcon(icon, status);
+					prContainer.setText(pr.title);
+				}
+			});
 		}
 		// TODO: add support for other stuff here
 	}
+
 	return container;
 }
 
@@ -70,7 +77,7 @@ export async function InlineRenderer(el: HTMLElement) {
 	const githubLinks = el.querySelectorAll<HTMLAnchorElement>(`a.external-link[href^="https://github.com"]`);
 	for (const anchor of Array.from(githubLinks)) {
 		if (anchor.href === anchor.innerText) {
-			const container = await createTag(anchor.href);
+			const container = createTag(anchor.href);
 			anchor.replaceWith(container);
 		}
 	}

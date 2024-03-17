@@ -17,15 +17,8 @@ class InlineTagWidget extends WidgetType {
 		dispatch: () => void,
 	) {
 		super();
-		createTag(href)
-			.then((tag) => {
-				this.container.appendChild(tag);
-			})
-			.catch((err) => {
-				console.error(err);
-				this.error = true;
-				dispatch(); // Force an update of decorations
-			});
+		const tag = createTag(href);
+		this.container.appendChild(tag);
 	}
 
 	eq(widget: WidgetType): boolean {
@@ -83,11 +76,11 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 
 		shouldRender(view: EditorView, decorationFrom: number, decorationTo: number, match: RegExpMatchArray) {
 			// Ignore matches inside a markdown link
-			const input = match.input ?? '';
+			const input = match.input ?? "";
 			const index = match.index ?? 0;
 			const matchValue = match[0];
 			const endIndex = index + matchValue.length;
-			if (input[index - 1] === '(' && matchValue.endsWith(')')) {
+			if (input[index - 1] === "(" && matchValue.endsWith(")")) {
 				return false;
 			}
 
