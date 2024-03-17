@@ -119,6 +119,12 @@ export const DateFormat = {
 	}),
 };
 
+export function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+}
+
 export class RequestError implements Error {
 	name: string;
 	message: string;

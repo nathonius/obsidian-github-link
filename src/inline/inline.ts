@@ -4,7 +4,6 @@ import { getIssue, getPullRequest } from "../github/github";
 import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
 import { setIssueIcon, setPRIcon } from "src/icon";
-import { Logger } from "src/plugin";
 
 export async function createTag(href: string) {
 	const parsedUrl = parseUrl(href);
@@ -36,8 +35,6 @@ export async function createTag(href: string) {
 		// Get issue info
 		if (parsedUrl.issue !== undefined) {
 			const issue = await getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue);
-			Logger.debug("Rendering tag for issue:");
-			Logger.debug(issue);
 			if (issue.title) {
 				const status = getIssueStatus(issue);
 				setIssueIcon(icon, status);
@@ -51,8 +48,6 @@ export async function createTag(href: string) {
 		// Get PR info
 		if (parsedUrl.pr !== undefined) {
 			const pull = await getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr);
-			Logger.debug("Rendering tag for pull request:");
-			Logger.debug(pull);
 			if (pull.title) {
 				const status = getPRStatus(pull);
 				setPRIcon(icon, status);

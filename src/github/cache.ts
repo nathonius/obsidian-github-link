@@ -18,7 +18,6 @@ class CacheEntry<T> {
 
 	get expired(): boolean {
 		const expiry = this.created.getTime() + this.ttl * 60 * 1000;
-
 		return new Date().getTime() > expiry;
 	}
 }
@@ -60,13 +59,13 @@ export class Cache {
 
 	setIssue(org: string, repo: string, issue: IssueResponse): void {
 		const issueCache = this.getRepoCache(org, repo).issueCache;
-		const existingCache = issueCache[issue.id];
+		const existingCache = issueCache[issue.number];
 		if (existingCache) {
 			const now = new Date();
 			existingCache.created = now;
 			existingCache.value = issue;
 		} else {
-			issueCache[issue.id] = new CacheEntry<IssueResponse>(issue);
+			issueCache[issue.number] = new CacheEntry<IssueResponse>(issue);
 		}
 	}
 

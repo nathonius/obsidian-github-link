@@ -14,6 +14,7 @@ import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 
 import { RequestError } from "src/util";
 import { requestUrl } from "obsidian";
+import { Logger } from "src/plugin";
 
 const baseApi = "https://api.github.com";
 
@@ -35,7 +36,20 @@ export async function githubRequest(config: RequestUrlParam, token?: string): Pr
 		config.headers.Authorization = `Bearer ${token}`;
 	}
 	try {
+		Logger.debug(`Request: ${config.url}`);
+		Logger.debug(config);
 		const response = await requestUrl(config);
+		Logger.debug(`Response:`);
+		Logger.debug(response);
+
+		// Handle rate limit
+		const retryAfterSeconds = response.headers["retry-after"];
+		if (retryAfterSeconds) {
+			Logger.warn(`Got retry-after header with value ${retryAfterSeconds}`);
+			await sleep(parseInt(retryAfterSeconds) * 1000);
+			return githubRequest(config, token);
+		}
+
 		return response;
 	} catch (err) {
 		throw new RequestError(err as Error);
