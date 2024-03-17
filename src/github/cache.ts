@@ -106,13 +106,13 @@ export class Cache {
 
 	setPullRequest(org: string, repo: string, pullRequest: PullResponse): void {
 		const pullCache = this.getRepoCache(org, repo).pullCache;
-		const existingCache = pullCache[pullRequest.id];
+		const existingCache = pullCache[pullRequest.number];
 		if (existingCache) {
 			const now = new Date();
 			existingCache.created = now;
 			existingCache.value = pullRequest;
 		} else {
-			pullCache[pullRequest.id] = new CacheEntry<PullResponse>(pullRequest);
+			pullCache[pullRequest.number] = new CacheEntry<PullResponse>(pullRequest);
 		}
 	}
 
