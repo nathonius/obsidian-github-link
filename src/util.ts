@@ -2,41 +2,6 @@ export type RemoveIndexSignature<T> = {
 	[K in keyof T as string extends K ? never : number extends K ? never : symbol extends K ? never : K]: T[K];
 };
 
-export enum LogLevel {
-	Error = 0,
-	Warn = 1,
-	Info = 2,
-	Debug = 3,
-}
-
-export function verboseFactory(logLevel: LogLevel) {
-	const log = (message: unknown, level: LogLevel) => {
-		if (level <= logLevel) {
-			switch (level) {
-				case LogLevel.Error:
-					console.error(message);
-					break;
-				case LogLevel.Warn:
-					console.warn(message);
-					break;
-				case LogLevel.Info:
-					console.info(message);
-					break;
-				case LogLevel.Debug:
-					console.debug(message);
-					break;
-			}
-		}
-	};
-	return {
-		log,
-		error: (message: unknown) => log(message, LogLevel.Error),
-		warn: (message: unknown) => log(message, LogLevel.Warn),
-		info: (message: unknown) => log(message, LogLevel.Info),
-		debug: (message: unknown) => log(message, LogLevel.Debug),
-	};
-}
-
 export function titleCase(value: string): string {
 	const words = value.split(/[-_]/);
 	return words.map((w) => w.charAt(0)?.toUpperCase() + w.slice(1)).join(" ");

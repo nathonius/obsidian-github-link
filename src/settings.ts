@@ -4,7 +4,7 @@ import { PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
 import { AuthModal } from "./auth-modal";
 import type { GithubLinkPlugin } from "./plugin";
-import { LogLevel } from "./util";
+import { LogLevel } from "./logger";
 import { PluginSettings } from "./plugin";
 import type { Verification } from "@octokit/auth-oauth-device/dist-types/types";
 import { auth } from "./github/auth";
