@@ -140,7 +140,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				button.setTooltip("Save account");
 				button.setIcon("save");
 				button.onClick(async () => {
-					if (!this.newAccount || !this.newAccount.name || !this.newAccount.token) {
+					if (!this.newAccount?.name || !this.newAccount.token) {
 						return;
 					}
 					PluginSettings.accounts.unshift(this.newAccount);

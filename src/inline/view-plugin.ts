@@ -34,7 +34,7 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 	class InlineViewPluginValue implements PluginValue {
 		public readonly view: EditorView;
 		private readonly match = new MatchDecorator({
-			regexp: /(https:\/\/)?github\.com[\S]+/g,
+			regexp: /(https:\/\/)?github\.com\S+/g,
 			decorate: (add, from, to, match, view) => {
 				const shouldRender = this.shouldRender(view, from, to, match);
 				if (shouldRender) {
@@ -79,6 +79,7 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 			const input = match.input ?? "";
 			const index = match.index ?? 0;
 			const matchValue = match[0];
+			// eslint-disable-next-line unused-imports/no-unused-vars
 			const endIndex = index + matchValue.length;
 			if (input[index - 1] === "(" && matchValue.endsWith(")")) {
 				return false;

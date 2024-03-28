@@ -96,7 +96,7 @@ async function getIssue(org: string, repo: string, issue: number, token?: string
 	return result.json as IssueResponse;
 }
 
-async function listIssuesForToken(params: IssueListParams = {}, token: string): Promise<IssueListResponse> {
+async function listIssuesForToken(params: IssueListParams, token: string): Promise<IssueListResponse> {
 	const url = addParams(`${baseApi}/issues`, params as Record<string, unknown>);
 	const result = await queueRequest({ url }, token);
 	return result.json as IssueListResponse;

@@ -44,7 +44,7 @@ export class Cache {
 	public readonly orgs: Record<string, OrgCache> = {};
 	public readonly queries = new QueryCache();
 
-	getGeneric(url: string): unknown | null {
+	getGeneric(url: string): unknown {
 		return this.getCacheValue(this.generic[url] ?? null);
 	}
 

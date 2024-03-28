@@ -20,6 +20,7 @@ import type { GithubAccount } from "src/settings";
 import { PluginSettings } from "src/plugin";
 
 const cache = new Cache();
+const tokenMatchRegex = /repo:(.+)\//;
 
 function getAccount(org?: string): GithubAccount | undefined {
 	const account =
@@ -33,9 +34,9 @@ function getToken(org?: string, query?: string): string | undefined {
 
 	// Try and parse org from the query
 	if (!org && query) {
-		const match = query.match(/repo:(.+)\//);
-		if (match && match[0] !== null) {
-			_org = match[1];
+		const match = tokenMatchRegex.exec(query);
+		if (match?.[0] !== null) {
+			_org = match?.[1];
 		}
 	}
 
