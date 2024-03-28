@@ -61,7 +61,7 @@ export async function getMyIssues(
 	skipCache = false,
 ): Promise<IssueListResponse> {
 	const account = getAccount(org);
-	if (!account || !account.token) {
+	if (!account?.token) {
 		return [];
 	}
 	const _params = sanitizeObject(params, {

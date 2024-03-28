@@ -14,7 +14,7 @@ import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 
 import { RequestError, promiseWithResolvers } from "src/util";
 import { Notice, requestUrl } from "obsidian";
-import { Logger } from "src/plugin";
+import { logger } from "src/plugin";
 import Queue from "queue";
 
 const baseApi = "https://api.github.com";
@@ -41,7 +41,7 @@ export async function queueRequest(config: RequestUrlParam, token?: string): Pro
 
 async function githubRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
 	if (rateLimitReset !== null && rateLimitReset > new Date()) {
-		Logger.warn(
+		logger.warn(
 			`GitHub rate limit exceeded. No more requests will be made until ${rateLimitReset.toLocaleTimeString()}`,
 		);
 		throw new Error("GitHub rate limit exceeded.");
@@ -59,18 +59,18 @@ async function githubRequest(config: RequestUrlParam, token?: string): Promise<R
 		config.headers.Authorization = `Bearer ${token}`;
 	}
 	try {
-		Logger.debug(`Request: ${config.url}`);
-		Logger.debug(config);
+		logger.debug(`Request: ${config.url}`);
+		logger.debug(config);
 		const response = await requestUrl(config);
-		Logger.debug(`Response:`);
-		Logger.debug(response);
+		logger.debug(`Response:`);
+		logger.debug(response);
 
 		// Handle rate limit
 		const retryAfterSeconds = parseInt(response.headers["retry-after"]);
 		const rateLimitRemaining = parseInt(response.headers["x-ratelimit-remaining"]);
 		const rateLimitResetSeconds = parseInt(response.headers["x-ratelimit-reset"]);
 		if (!isNaN(retryAfterSeconds)) {
-			Logger.warn(`Got retry-after header with value ${retryAfterSeconds}`);
+			logger.warn(`Got retry-after header with value ${retryAfterSeconds}`);
 			await sleep(retryAfterSeconds * 1000);
 			return githubRequest(config, token);
 		} else if (!isNaN(rateLimitRemaining) && rateLimitRemaining === 0 && !isNaN(rateLimitResetSeconds)) {
@@ -81,7 +81,7 @@ async function githubRequest(config: RequestUrlParam, token?: string): Promise<R
 			}
 			new Notice(message);
 		} else if (!isNaN(rateLimitRemaining) && rateLimitRemaining <= 5) {
-			Logger.warn("GitHub rate limit approaching.");
+			logger.warn("GitHub rate limit approaching.");
 		}
 
 		return response;
