@@ -64,7 +64,7 @@ export function sanitizeObject<T>(params: T, usableFieldMap: Record<keyof T, boo
 /**
  * Attempts to handle getting a nested property using a string of js object notation
  */
-export function getProp<T extends { [key: string]: unknown }>(value: T, prop: string): unknown | null {
+export function getProp<T extends { [key: string]: unknown }>(value: T, prop: string): unknown {
 	if (!prop.includes(".")) {
 		return value[prop] ?? null;
 	}
@@ -96,7 +96,7 @@ export function safeJSONParse<T>(value: string, props: Record<keyof T, boolean>)
 	const result: any = {};
 	for (const [_prop, include] of Object.entries(props)) {
 		const prop = _prop as keyof T;
-		if (include && parsed[prop as keyof T]) {
+		if (include && parsed[prop]) {
 			result[prop] = parsed[prop];
 		}
 	}
@@ -143,7 +143,7 @@ export function promiseWithResolvers<T>() {
 export class RequestError implements Error {
 	name: string;
 	message: string;
-	stack?: string | undefined;
+	stack?: string;
 	headers: Record<string, string>;
 	status: number;
 	constructor(public readonly originalError: Error) {

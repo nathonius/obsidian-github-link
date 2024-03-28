@@ -57,8 +57,7 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 			const cell = tr.createEl("td");
 			const renderer = ALL_COLUMNS[params.queryType][col];
 			if (renderer) {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				renderer.cell(row as any, cell);
+				renderer.cell(row, cell);
 			} else {
 				const cellVal = getProp(row, col);
 				if (cellVal !== null) {

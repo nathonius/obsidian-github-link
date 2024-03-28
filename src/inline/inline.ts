@@ -63,7 +63,6 @@ export function createTag(href: string) {
 				}
 			});
 		}
-		// TODO: add support for other stuff here
 	}
 
 	return container;
