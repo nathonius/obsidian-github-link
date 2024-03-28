@@ -32,45 +32,36 @@ export function parseUrl(urlString: string): ParsedUrl {
 	const parsedUrl: ParsedUrl = { url: urlString, host: url.hostname };
 
 	const urlParts = url.pathname.split("/");
-	if (urlParts.length >= 4) {
+	if (urlParts.length > 4) {
+		const issueNumber = parseInt(urlParts[4], 10);
 		switch (urlParts[3].toLowerCase()) {
 			case "issues":
-				if (urlParts[4]) {
-					const issueNumber = parseInt(urlParts[4], 10);
-					if (!isNaN(issueNumber)) {
-						parsedUrl.issue = issueNumber;
-					}
+				if (!isNaN(issueNumber)) {
+					parsedUrl.issue = issueNumber;
 				}
 				break;
 			case "pull":
-				if (urlParts[4]) {
-					const prNumber = parseInt(urlParts[4], 10);
-					if (!isNaN(prNumber)) {
-						parsedUrl.pr = prNumber;
-					}
+				if (!isNaN(issueNumber)) {
+					parsedUrl.pr = issueNumber;
 				}
 				break;
 			case "blob":
 				parsedUrl.code = {};
-				if (urlParts[4]) {
-					parsedUrl.code.branch = urlParts[4];
-				}
+				parsedUrl.code.branch = urlParts[4];
 				if (urlParts[5]) {
 					const pathParts = urlParts.slice(5);
 					parsedUrl.code.path = pathParts.join("/");
 				}
 				break;
 			case "commit":
-				if (urlParts[4]) {
-					parsedUrl.commit = urlParts.slice(4).join("/");
-				}
+				parsedUrl.commit = urlParts.slice(4).join("/");
 				break;
 		}
 	}
-	if (urlParts.length >= 3) {
+	if (urlParts.length > 2) {
 		parsedUrl.repo = urlParts[2];
 	}
-	if (urlParts.length >= 2) {
+	if (urlParts.length > 1) {
 		parsedUrl.org = urlParts[1];
 	}
 
