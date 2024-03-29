@@ -8,13 +8,12 @@ import type {
 	PullListParams,
 	PullListResponse,
 	PullResponse,
-	RepoSearchResponse,
 } from "./response";
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 
-import { RequestError, promiseWithResolvers } from "src/util";
+import { RequestError, isSuccessResponse, promiseWithResolvers } from "src/util";
 import { Notice, requestUrl } from "obsidian";
-import { logger } from "src/plugin";
+import { PluginSettings, getCache, logger } from "src/plugin";
 import Queue from "queue";
 
 const baseApi = "https://api.github.com";
@@ -30,6 +29,11 @@ export function addParams(href: string, params: Record<string, unknown>): string
 }
 
 export async function queueRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
+	// Responses we (probably) have cached will skip the queue
+	if (getCache().get(config)) {
+		return githubRequest(config, token);
+	}
+
 	const { resolve, promise } = promiseWithResolvers<RequestUrlResponse>();
 	q.push(() => {
 		return githubRequest(config, token).then((result) => {
@@ -39,7 +43,7 @@ export async function queueRequest(config: RequestUrlParam, token?: string): Pro
 	return promise;
 }
 
-async function githubRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
+async function githubRequest(config: RequestUrlParam, token?: string, skipCache = false): Promise<RequestUrlResponse> {
 	if (rateLimitReset !== null && rateLimitReset > new Date()) {
 		logger.warn(
 			`GitHub rate limit exceeded. No more requests will be made until ${rateLimitReset.toLocaleTimeString()}`,
@@ -58,13 +62,40 @@ async function githubRequest(config: RequestUrlParam, token?: string): Promise<R
 	if (token) {
 		config.headers.Authorization = `Bearer ${token}`;
 	}
+
+	// Check request cache first
+	const cachedValue = getCache().get(config);
+
+	// Return the cached value if it was recent enough
+	const minCacheAge = new Date(new Date().getTime() - PluginSettings.minRequestSeconds * 1000);
+	if (!skipCache && cachedValue?.retrieved && cachedValue.retrieved > minCacheAge) {
+		logger.debug(`Request was too recent. Returning cached value for: ${config.url}`);
+		logger.debug(cachedValue.response);
+		return cachedValue.response;
+	}
+
+	// Check for cache headers
+	if (cachedValue?.etag) {
+		config.headers["if-none-match"] = cachedValue.etag;
+	}
+	if (cachedValue?.lastModified) {
+		config.headers["if-modified-since"] = cachedValue.lastModified;
+	}
+
 	try {
 		logger.debug(`Request: ${config.url}`);
 		logger.debug(config);
 		const response = await requestUrl(config);
-		logger.debug(`Response:`);
+		logger.debug(`Response (${config.url}):`);
 		logger.debug(response);
 
+		// Check for 304 response, return cached value
+		if (cachedValue?.response && response.status === 304) {
+			getCache().update(config);
+			return cachedValue.response;
+		} else if (isSuccessResponse(response.status)) {
+			await getCache().set(config, response);
+		}
 		// Handle rate limit
 		const retryAfterSeconds = parseInt(response.headers["retry-after"]);
 		const rateLimitRemaining = parseInt(response.headers["x-ratelimit-remaining"]);
@@ -144,11 +175,6 @@ async function getCode(org: string, repo: string, path: string, branch: string, 
 	return result.json as CodeResponse;
 }
 
-async function searchRepos(query: string, token?: string): Promise<RepoSearchResponse> {
-	const result = await queueRequest({ url: `${baseApi}/search/repositories?q=${encodeURIComponent(query)}` }, token);
-	return result.json as RepoSearchResponse;
-}
-
 async function searchIssues(params: IssueSearchParams, token?: string): Promise<IssueSearchResponse> {
 	const url = addParams(`${baseApi}/search/issues`, params);
 	const result = await githubRequest({ url }, token);
@@ -163,5 +189,4 @@ export const api = {
 	listPullRequestsForRepo,
 	getCode,
 	searchIssues,
-	searchRepos,
 };

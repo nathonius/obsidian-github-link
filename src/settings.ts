@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { PluginSettingTab, Setting } from "obsidian";
+import { Notice, PluginSettingTab, Setting } from "obsidian";
 
 import type { App } from "obsidian";
 import { AuthModal } from "./auth-modal";
 import type { GithubLinkPlugin } from "./plugin";
 import { LogLevel } from "./logger";
-import { PluginSettings } from "./plugin";
+import { PluginSettings, getCache } from "./plugin";
 import type { Verification } from "@octokit/auth-oauth-device/dist-types/types";
 import { auth } from "./github/auth";
 
@@ -22,6 +22,10 @@ export interface GithubLinkPluginSettings {
 	defaultPageSize: number;
 	logLevel: LogLevel;
 	tagTooltips: boolean;
+	cacheIntervalSeconds: number;
+	maxCacheAgeHours: number;
+	minRequestSeconds: number;
+	cache: string[] | null;
 }
 
 export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
@@ -29,6 +33,10 @@ export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
 	defaultPageSize: 10,
 	logLevel: LogLevel.Error,
 	tagTooltips: false,
+	cacheIntervalSeconds: 60,
+	maxCacheAgeHours: 120,
+	minRequestSeconds: 60,
+	cache: null,
 };
 
 export class GithubLinkPluginSettingsTab extends PluginSettingTab {
@@ -60,6 +68,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				this.display();
 			});
 		});
+
 		new Setting(containerEl)
 			.setName("Default account")
 			.setDesc("The account that will be used if no other users or organizations match.")
@@ -83,6 +92,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 		if (this.newAccount !== null) {
 			const accountContainer = containerEl.createDiv();
 			const header = accountContainer.createEl("h3", { text: "New account" });
+
 			new Setting(accountContainer)
 				.setName("Account name")
 				.setDesc("Required.")
@@ -101,6 +111,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 						this.display();
 					});
 				});
+
 			new Setting(accountContainer)
 				.setName("Orgs and users")
 				.setDesc(
@@ -112,6 +123,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 						this.newAccount!.orgs = value.split(",");
 					});
 				});
+
 			new Setting(accountContainer)
 				.setName("Token")
 				.setDesc(
@@ -136,7 +148,9 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 						this.newAccount!.token = value;
 					});
 				});
+
 			new Setting(accountContainer).addButton((button) => {
+				button.setButtonText("Save account");
 				button.setTooltip("Save account");
 				button.setIcon("save");
 				button.onClick(async () => {
@@ -154,6 +168,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 		for (const account of PluginSettings.accounts) {
 			const accountContainer = containerEl.createDiv();
 			accountContainer.createEl("h3", { text: account.name });
+
 			new Setting(accountContainer)
 				.setName("Account name")
 				.addText((text) => {
@@ -172,6 +187,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 						this.display();
 					});
 				});
+
 			new Setting(accountContainer)
 				.setName("Orgs and users")
 				.setDesc("A comma separated list of the GitHub organizations and users this account should be used for.")
@@ -182,6 +198,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 						this.saveSettings();
 					});
 				});
+
 			new Setting(accountContainer)
 				.setName("Token")
 				.setDesc(
@@ -210,6 +227,8 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 		}
 
+		containerEl.createEl("h2", { text: "Other settings" });
+
 		new Setting(containerEl)
 			.setName("Default result size")
 			.setDesc("The maximum number of results that will be included in a table unless specified otherwise.")
@@ -223,10 +242,13 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 			})
 			.addSlider((slider) => {
+				const displayValue = createSpan({ text: PluginSettings.defaultPageSize.toString() });
+				slider.sliderEl.parentElement?.prepend(displayValue);
 				slider.setLimits(0, 30, 1);
-				slider.setValue(PluginSettings.defaultPageSize);
 				slider.setDynamicTooltip();
+				slider.setValue(PluginSettings.defaultPageSize);
 				slider.onChange((value) => {
+					displayValue.setText(value.toString());
 					PluginSettings.defaultPageSize = value;
 					this.saveSettings();
 				});
@@ -240,6 +262,108 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				toggle.onChange((value) => {
 					PluginSettings.tagTooltips = value;
 					this.saveSettings();
+				});
+			});
+
+		containerEl.createEl("h3", { text: "Cache settings" });
+
+		new Setting(containerEl)
+			.setClass("github-link-sub-setting")
+			.setName("Cache save interval (seconds)")
+			.setDesc(
+				"If it has been updated, cache will be saved to disk after this number of seconds while Obsidian is open.",
+			)
+			.addExtraButton((button) => {
+				button.setIcon("rotate-ccw");
+				button.setTooltip("Restore default");
+				button.onClick(async () => {
+					PluginSettings.cacheIntervalSeconds = DEFAULT_SETTINGS.cacheIntervalSeconds;
+					await this.saveSettings();
+					this.plugin.setCacheInterval();
+					this.display();
+				});
+			})
+			.addSlider((slider) => {
+				const displayValue = createSpan({ text: PluginSettings.cacheIntervalSeconds.toString() });
+				slider.sliderEl.parentElement?.prepend(displayValue);
+				slider.setValue(PluginSettings.cacheIntervalSeconds);
+				slider.setLimits(10, 1200, 10);
+				slider.setDynamicTooltip();
+				slider.onChange(async (value) => {
+					PluginSettings.cacheIntervalSeconds = value;
+					displayValue.setText(value.toString());
+					await this.saveSettings();
+					this.plugin.setCacheInterval();
+				});
+			});
+
+		new Setting(containerEl)
+			.setClass("github-link-sub-setting")
+			.setName("Max cache age (hours)")
+			.setDesc("Upon Obsidian startup, cache entries older than this many hours will be removed.")
+			.addExtraButton((button) => {
+				button.setIcon("rotate-ccw");
+				button.setTooltip("Restore default");
+				button.onClick(async () => {
+					PluginSettings.maxCacheAgeHours = DEFAULT_SETTINGS.maxCacheAgeHours;
+					await this.saveSettings();
+					this.plugin.setCacheInterval();
+					this.display();
+				});
+			})
+			.addSlider((slider) => {
+				const displayValue = createSpan({ text: PluginSettings.maxCacheAgeHours.toString() });
+				slider.sliderEl.parentElement?.prepend(displayValue);
+				slider.setValue(PluginSettings.maxCacheAgeHours);
+				slider.setLimits(0, 170, 10);
+				slider.setDynamicTooltip();
+				slider.onChange(async (value) => {
+					PluginSettings.maxCacheAgeHours = value;
+					displayValue.setText(value.toString());
+					await this.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setClass("github-link-sub-setting")
+			.setName("Minimum time between same request (seconds)")
+			.setDesc(
+				"If a request is made within this time frame for a value that is already cached, the cached value will be used without checking if it has changed.",
+			)
+			.addExtraButton((button) => {
+				button.setIcon("rotate-ccw");
+				button.setTooltip("Restore default");
+				button.onClick(async () => {
+					PluginSettings.minRequestSeconds = DEFAULT_SETTINGS.minRequestSeconds;
+					await this.saveSettings();
+					this.display();
+				});
+			})
+			.addSlider((slider) => {
+				const displayValue = createSpan({ text: PluginSettings.minRequestSeconds.toString() });
+				slider.sliderEl.parentElement?.prepend(displayValue);
+				slider.setValue(PluginSettings.minRequestSeconds);
+				slider.setLimits(10, 1200, 10);
+				slider.setDynamicTooltip();
+				slider.onChange(async (value) => {
+					PluginSettings.minRequestSeconds = value;
+					displayValue.setText(value.toString());
+					await this.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setClass("github-link-sub-setting")
+			.setName("Clear cache")
+			.setDesc("Seeing strange cache behavior? Clicking this will delete all cached responses.")
+			.addButton((button) => {
+				button.setIcon("trash");
+				button.setButtonText("Clear cache");
+				button.onClick(async () => {
+					const itemsDeleted = getCache().clean(new Date());
+					PluginSettings.cache = null;
+					await this.saveSettings();
+					new Notice(`Removed ${itemsDeleted} stored items from GitHub Link cache.`, 3000);
 				});
 			});
 

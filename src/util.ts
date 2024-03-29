@@ -105,6 +105,10 @@ export function promiseWithResolvers<T>() {
 	return { resolve, reject, promise };
 }
 
+export function isSuccessResponse(code: number) {
+	return code >= 200 && code <= 208;
+}
+
 export class RequestError implements Error {
 	name: string;
 	message: string;

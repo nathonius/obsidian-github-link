@@ -1,3 +1,4 @@
+import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 import type {
 	IssueListParams,
 	IssueListResponse,
@@ -8,8 +9,152 @@ import type {
 	PullResponse,
 	RepoSearchResponse,
 } from "./response";
+import { logger } from "src/plugin";
+import { isSuccessResponse } from "src/util";
 
-class CacheEntry<T> {
+interface CacheParams {
+	request: RequestUrlParam;
+	response: RequestUrlResponse;
+	retrieved: number;
+	etag: string | null;
+	lastModified: string | null;
+}
+
+class CacheEntry {
+	constructor(
+		public readonly request: RequestUrlParam,
+		public readonly response: RequestUrlResponse,
+		public retrieved: Date,
+		public readonly etag: string | null,
+		public readonly lastModified: string | null,
+	) {}
+
+	public static fromJSON(json: string): CacheEntry | null {
+		let result: CacheEntry | null = null;
+		try {
+			const parsed = JSON.parse(json) as CacheParams;
+			result = new CacheEntry(
+				parsed.request,
+				parsed.response,
+				new Date(parsed.retrieved),
+				parsed.etag,
+				parsed.lastModified,
+			);
+		} catch (err) {
+			logger.error("Failure reconstructing cache!");
+			logger.error(err);
+		}
+		return result;
+	}
+
+	public toJSON(): string {
+		const params: CacheParams = {
+			request: this.request,
+			response: this.response,
+			retrieved: this.retrieved.getTime(),
+			etag: this.etag,
+			lastModified: this.lastModified,
+		};
+		return JSON.stringify(params);
+	}
+}
+
+/**
+ * Cache of responses to simple, non-search requests
+ */
+export class RequestCache {
+	public cacheUpdated = false;
+	private readonly entries: Record<string, CacheEntry> = {};
+
+	constructor(storedCache: string[] | null) {
+		if (storedCache) {
+			try {
+				for (const entryString of storedCache) {
+					const entry = CacheEntry.fromJSON(entryString);
+					if (!entry) {
+						return;
+					}
+					this.entries[this.getCacheKey(entry.request)] = entry;
+				}
+			} catch (err) {
+				logger.warn("Could not read stored cache data, cache will be cleared.");
+				logger.warn(err);
+			}
+		}
+	}
+
+	public get(request: RequestUrlParam): CacheEntry | null {
+		return this.entries[this.getCacheKey(request)] ?? null;
+	}
+
+	public set(request: RequestUrlParam, response: RequestUrlResponse): void {
+		// Don't store bad responses
+		if (!isSuccessResponse(response.status)) {
+			logger.warn(`Attempted to cache a non-successful request: ${request.url}`);
+			return;
+		}
+
+		const etag = response.headers.etag ?? null;
+		const lastModified = response.headers["last-modified"] ?? null;
+
+		// Slim down the data we store
+		const _request: Partial<RequestUrlParam> = { url: request.url, body: request.body };
+		const _response: Partial<RequestUrlResponse> = { json: response.json, status: response.status };
+
+		const entry = new CacheEntry(
+			_request as RequestUrlParam,
+			_response as RequestUrlResponse,
+			new Date(),
+			etag,
+			lastModified,
+		);
+		this.entries[this.getCacheKey(request)] = entry;
+		this.cacheUpdated = true;
+	}
+
+	public remove(request: RequestUrlParam | string): void {
+		if (typeof request === "string") {
+			delete this.entries[request];
+		} else {
+			delete this.entries[this.getCacheKey(request)];
+		}
+		this.cacheUpdated = true;
+	}
+
+	public clean(maxAge: Date): number {
+		let entriesDeleted = 0;
+		for (const [k, v] of Object.entries(this.entries)) {
+			if (v.retrieved < maxAge) {
+				delete this.entries[k];
+				entriesDeleted += 1;
+			}
+		}
+		return entriesDeleted;
+	}
+
+	public update(request: RequestUrlParam | string): void {
+		let entry: CacheEntry | null = null;
+		if (typeof request === "string") {
+			entry = this.entries[request];
+		} else {
+			entry = this.entries[this.getCacheKey(request)];
+		}
+		if (entry) {
+			entry.retrieved = new Date();
+		}
+		this.cacheUpdated = true;
+	}
+
+	public toJSON(): string[] {
+		return Object.values(this.entries).map((e) => e.toJSON());
+	}
+
+	private getCacheKey(request: RequestUrlParam): string {
+		return request.url;
+	}
+}
+
+class OldCacheEntry<T> {
 	constructor(
 		public value: T,
 		public created: Date = new Date(),
@@ -22,34 +167,34 @@ class CacheEntry<T> {
 	}
 }
 
-class QueryCache {
-	public readonly issueCache: Record<string, CacheEntry<IssueSearchResponse>> = {};
-	public readonly repoCache: Record<string, CacheEntry<RepoSearchResponse>> = {};
+class OldQueryCache {
+	public readonly issueCache: Record<string, OldCacheEntry<IssueSearchResponse>> = {};
+	public readonly repoCache: Record<string, OldCacheEntry<RepoSearchResponse>> = {};
 }
 
-class RepoCache {
-	public readonly issueCache: Record<number, CacheEntry<IssueResponse>> = {};
-	public readonly issueListForRepoCache: Record<string, CacheEntry<IssueListResponse>> = {};
-	public readonly pullCache: Record<string, CacheEntry<PullResponse>> = {};
-	public readonly pullListForRepoCache: Record<string, CacheEntry<PullListResponse>> = {};
+class OldRepoCache {
+	public readonly issueCache: Record<number, OldCacheEntry<IssueResponse>> = {};
+	public readonly issueListForRepoCache: Record<string, OldCacheEntry<IssueListResponse>> = {};
+	public readonly pullCache: Record<string, OldCacheEntry<PullResponse>> = {};
+	public readonly pullListForRepoCache: Record<string, OldCacheEntry<PullListResponse>> = {};
 }
 
-class OrgCache {
-	public readonly repos: Record<string, RepoCache> = {};
-	public readonly issueList: Record<string, CacheEntry<IssueListResponse>> = {};
+class OldOrgCache {
+	public readonly repos: Record<string, OldRepoCache> = {};
+	public readonly issueList: Record<string, OldCacheEntry<IssueListResponse>> = {};
 }
 
-export class Cache {
-	public readonly generic: Record<string, CacheEntry<unknown>> = {};
-	public readonly orgs: Record<string, OrgCache> = {};
-	public readonly queries = new QueryCache();
+export class OldCache {
+	public readonly generic: Record<string, OldCacheEntry<unknown>> = {};
+	public readonly orgs: Record<string, OldOrgCache> = {};
+	public readonly queries = new OldQueryCache();
 
 	getGeneric(url: string): unknown {
 		return this.getCacheValue(this.generic[url] ?? null);
 	}
 
 	setGeneric(url: string, value: unknown): void {
-		this.generic[url] = new CacheEntry(value);
+		this.generic[url] = new OldCacheEntry(value);
 	}
 
 	getIssue(org: string, repo: string, issue: number): IssueResponse | null {
@@ -65,7 +210,7 @@ export class Cache {
 			existingCache.created = now;
 			existingCache.value = issue;
 		} else {
-			issueCache[issue.number] = new CacheEntry<IssueResponse>(issue);
+			issueCache[issue.number] = new OldCacheEntry<IssueResponse>(issue);
 		}
 	}
 
@@ -76,7 +221,7 @@ export class Cache {
 
 	setIssueList(org: string, params: IssueListParams, value: IssueListResponse): void {
 		const orgCache = this.getOrgCache(org);
-		orgCache.issueList[JSON.stringify(params)] = new CacheEntry(value);
+		orgCache.issueList[JSON.stringify(params)] = new OldCacheEntry(value);
 	}
 
 	getIssueListForRepo(org: string, repo: string, params: IssueListParams): IssueListResponse | null {
@@ -86,7 +231,7 @@ export class Cache {
 
 	setIssueListForRepo(org: string, repo: string, params: IssueListParams, value: IssueListResponse): void {
 		const repoCache = this.getRepoCache(org, repo);
-		repoCache.issueListForRepoCache[JSON.stringify(params)] = new CacheEntry(value);
+		repoCache.issueListForRepoCache[JSON.stringify(params)] = new OldCacheEntry(value);
 	}
 
 	getPullRequest(org: string, repo: string, pullRequest: number): PullResponse | null {
@@ -101,7 +246,7 @@ export class Cache {
 
 	setPullListForRepo(org: string, repo: string, params: PullListParams, value: PullListResponse): void {
 		const repoCache = this.getRepoCache(org, repo);
-		repoCache.pullListForRepoCache[JSON.stringify(params)] = new CacheEntry(value);
+		repoCache.pullListForRepoCache[JSON.stringify(params)] = new OldCacheEntry(value);
 	}
 
 	setPullRequest(org: string, repo: string, pullRequest: PullResponse): void {
@@ -112,7 +257,7 @@ export class Cache {
 			existingCache.created = now;
 			existingCache.value = pullRequest;
 		} else {
-			pullCache[pullRequest.number] = new CacheEntry<PullResponse>(pullRequest);
+			pullCache[pullRequest.number] = new OldCacheEntry<PullResponse>(pullRequest);
 		}
 	}
 
@@ -121,7 +266,7 @@ export class Cache {
 	}
 
 	setIssueQuery(query: string, result: IssueSearchResponse): void {
-		this.queries.issueCache[query] = new CacheEntry<IssueSearchResponse>(result);
+		this.queries.issueCache[query] = new OldCacheEntry<IssueSearchResponse>(result);
 	}
 
 	getRepoQuery(query: string): RepoSearchResponse | null {
@@ -129,13 +274,13 @@ export class Cache {
 	}
 
 	setRepoQuery(query: string, result: RepoSearchResponse): void {
-		this.queries.repoCache[query] = new CacheEntry<RepoSearchResponse>(result);
+		this.queries.repoCache[query] = new OldCacheEntry<RepoSearchResponse>(result);
 	}
 
-	private getOrgCache(org: string): OrgCache {
+	private getOrgCache(org: string): OldOrgCache {
 		let orgCache = this.orgs[org];
 		if (!orgCache) {
-			orgCache = this.orgs[org] = new OrgCache();
+			orgCache = this.orgs[org] = new OldOrgCache();
 		}
 		return orgCache;
 	}
@@ -144,12 +289,12 @@ export class Cache {
 		const orgCache = this.getOrgCache(org);
 		let repoCache = orgCache.repos[repo];
 		if (!repoCache) {
-			repoCache = orgCache.repos[repo] = new RepoCache();
+			repoCache = orgCache.repos[repo] = new OldRepoCache();
 		}
 		return repoCache;
 	}
 
-	private getCacheValue<T>(cacheEntry: CacheEntry<T> | null): T | null {
+	private getCacheValue<T>(cacheEntry: OldCacheEntry<T> | null): T | null {
 		if (!cacheEntry || cacheEntry.expired) {
 			return null;
 		} else {
