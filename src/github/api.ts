@@ -138,7 +138,7 @@ export class GitHubApi {
 				getCache().update(config);
 				return cachedValue.response;
 			} else if (isSuccessResponse(response.status)) {
-				await getCache().set(config, response);
+				getCache().set(config, response);
 			}
 			// Handle rate limit
 			const retryAfterSeconds = parseInt(response.headers["retry-after"]);
