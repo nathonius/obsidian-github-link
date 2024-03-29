@@ -12,7 +12,7 @@ import type {
 } from "./response";
 import type { RemoveIndexSignature } from "src/util";
 import { RequestError, sanitizeObject } from "src/util";
-import { api, queueRequest } from "./api";
+import { GitHubApi } from "./api";
 
 import { OldCache } from "./cache";
 import type { GithubAccount } from "src/settings";
@@ -20,6 +20,7 @@ import { PluginSettings } from "src/plugin";
 
 const cache = new OldCache();
 const tokenMatchRegex = /repo:(.+)\//;
+const api = new GitHubApi();
 
 function getAccount(org?: string): GithubAccount | undefined {
 	const account =
@@ -165,7 +166,7 @@ export async function searchIssues(
 export async function getPRForIssue(timelineUrl: string, org?: string): Promise<string | null> {
 	let response: IssueTimelineResponse | null = null;
 	try {
-		response = (await queueRequest({ url: timelineUrl }, getToken(org))).json;
+		response = (await api.queueRequest({ url: timelineUrl }, getToken(org))).json;
 	} catch (err) {
 		// 404 means there's no timeline for this, we can ignore the error
 		if (err instanceof RequestError && err.status === 404) {

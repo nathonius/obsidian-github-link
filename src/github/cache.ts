@@ -20,7 +20,7 @@ interface CacheParams {
 	lastModified: string | null;
 }
 
-class CacheEntry {
+export class CacheEntry {
 	constructor(
 		public readonly request: RequestUrlParam,
 		public readonly response: RequestUrlResponse,
@@ -184,6 +184,9 @@ class OldOrgCache {
 	public readonly issueList: Record<string, OldCacheEntry<IssueListResponse>> = {};
 }
 
+/**
+ * @deprecated Should remove this in the one place its still used, but need an alternative solution first
+ */
 export class OldCache {
 	public readonly generic: Record<string, OldCacheEntry<unknown>> = {};
 	public readonly orgs: Record<string, OldOrgCache> = {};
