@@ -36,7 +36,7 @@ export async function QueryProcessor(
 			} else if (params.queryType === QueryType.PullRequest) {
 				const pullParams = params as TableParams<PullListParams>;
 				if (pullParams.org && pullParams.repo) {
-					response = await getPullRequestsForRepo(pullParams, pullParams.org, pullParams.repo, skipCache);
+					response = await getPullRequestsForRepo(pullParams, pullParams.org, pullParams.repo);
 				}
 			}
 		}

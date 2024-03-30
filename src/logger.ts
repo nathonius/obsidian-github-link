@@ -8,19 +8,25 @@ export enum LogLevel {
 export class Logger {
 	public logLevel: LogLevel = LogLevel.Error;
 	public log(message: unknown, level: LogLevel) {
+		let _message;
+		if (typeof message === "string") {
+			_message = `GitHub Link: ${message}`;
+		} else {
+			_message = message;
+		}
 		if (level <= this.logLevel) {
 			switch (level) {
 				case LogLevel.Error:
-					console.error(message);
+					console.error(_message);
 					break;
 				case LogLevel.Warn:
-					console.warn(message);
+					console.warn(_message);
 					break;
 				case LogLevel.Info:
-					console.info(message);
+					console.info(_message);
 					break;
 				case LogLevel.Debug:
-					console.debug(message);
+					console.debug(_message);
 					break;
 			}
 		}

@@ -146,6 +146,10 @@ body.theme-dark {
 	font-size: 3em;
 }
 
+.github-link-sub-setting {
+	padding-left: 2rem;
+}
+
 .github-link-inline {
 	display: inline-flex;
 	background-color: var(--gh-color-canvas-default);
