@@ -16,6 +16,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [0.6.0] - 2024-03-29
+
+### Changed
+
+- ✨ A brand new cache layer! ✨
+  - Improved performance
+  - Reduced API calls that count against the rate limit
+  - Cache saved to disk, so data is not lost when Obsidian closes
+  - See the [wiki](https://github.com/nathonius/obsidian-github-link/wiki/Plugin-settings#cache-settings) for more information!
+- Improvements in documentation of plugin settings
+- Added a new contributing document
+- Custom queries include a link to view the query results on GitHub
+
+
 ## [0.5.1] - 2024-03-16
 
 ### Changed
@@ -75,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[0.6.0]: https://github.com/nathonius/obsidian-github-link/compare/0.5.1...0.6.0
 [0.5.1]: https://github.com/nathonius/obsidian-github-link/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/nathonius/obsidian-github-link/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/nathonius/obsidian-github-link/compare/0.3.0...0.4.0
