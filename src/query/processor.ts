@@ -20,10 +20,12 @@ export async function QueryProcessor(
 
 	const renderFn = async (element: HTMLElement, skipCache = false) => {
 		let response: { items: unknown[] } | unknown[] | undefined = undefined;
+		let externalLink: string | undefined;
 		if (isTableQueryParams(params)) {
 			if (params.queryType === QueryType.Issue || params.queryType === QueryType.PullRequest) {
 				const queryParams = params as TableQueryParams<IssueSearchParams>;
 				response = await searchIssues(params, params.query, queryParams.org, skipCache);
+				externalLink = `https://github.com/search?q=${encodeURIComponent(params.query)}`;
 			}
 		} else if (isTableParams(params)) {
 			if (params.queryType === QueryType.Issue) {
@@ -41,7 +43,7 @@ export async function QueryProcessor(
 			}
 		}
 		if (response) {
-			renderTable(params, response, element, renderFn);
+			renderTable(params, response, element, renderFn, externalLink);
 		}
 	};
 	await renderFn(el);

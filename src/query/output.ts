@@ -19,6 +19,7 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 	result: T,
 	el: HTMLElement,
 	renderFn: (element: HTMLElement, skipCache?: boolean) => Promise<void>,
+	externalLink?: string,
 ) {
 	el.empty();
 	const tableWrapper = el.createDiv({ cls: "github-link-table-wrapper" });
@@ -27,6 +28,13 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 
 	if (params.refresh) {
 		const refresh = tableWrapper.createDiv({ cls: "github-link-table-refresh" });
+		if (externalLink) {
+			refresh.createEl("a", {
+				cls: "github-link-table-refresh-external-link",
+				text: "View on GitHub",
+				href: externalLink,
+			});
+		}
 		const refreshButton = refresh.createEl("button", {
 			cls: "clickable-icon",
 			attr: { "aria-label": "Refresh Results" },

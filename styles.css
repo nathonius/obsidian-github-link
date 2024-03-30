@@ -266,6 +266,15 @@ body.theme-dark {
 .github-link-table-refresh {
 	display: flex;
 	justify-content: flex-end;
+	align-items: center;
+}
+
+.github-link-table-refresh:has(a) {
+	justify-content: space-between;
+}
+
+.github-link-table-refresh-external-link {
+	font-size: 0.75rem;
 }
 
 .github-link-table-refresh > button > svg {
