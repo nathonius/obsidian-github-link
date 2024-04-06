@@ -11,6 +11,12 @@ export function valueWithin(value: number, min: number, max: number) {
 	return value >= min && value <= max;
 }
 
+export function assertDefined<T>(value: T | undefined | null): asserts value is T {
+	if (value === undefined || value === null) {
+		throw new Error(`Expected value to be defined!`);
+	}
+}
+
 export function sanitizeObject<T>(params: T, usableFieldMap: Record<keyof T, boolean>): T {
 	const usableFields: (keyof T)[] = Object.entries(usableFieldMap)
 		.filter(([_, value]) => value)
