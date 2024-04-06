@@ -76,7 +76,7 @@ export class GithubLinkPlugin extends Plugin {
 				logger.debug("Checking if cache needs a save.");
 				if (cache.cacheUpdated) {
 					PluginData.cache = cache.toJSON();
-					await this.saveData(PluginSettings);
+					await this.saveData(PluginData);
 					cache.cacheUpdated = false;
 					logger.info(`Saved request cache with ${PluginData.cache?.length} items.`);
 				}
