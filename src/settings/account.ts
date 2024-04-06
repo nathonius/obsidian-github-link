@@ -59,7 +59,7 @@ export class AccountSettings {
 			.addTextArea((text) => {
 				text.setValue(this.newAccount!.orgs.join(", "));
 				text.onChange((value) => {
-					this.newAccount!.orgs = value.split(",");
+					this.newAccount!.orgs = value.split(",").map((acc) => acc.trim());
 				});
 			});
 
