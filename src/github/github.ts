@@ -1,4 +1,5 @@
 import type {
+	CheckRunListResponse,
 	IssueListParams,
 	IssueListResponse,
 	IssueResponse,
@@ -130,6 +131,10 @@ export function getPullRequestsForRepo(params: PullListParams, org: string, repo
 
 	setPageSize(_params);
 	return api.listPullRequestsForRepo(org, repo, _params, getToken(org));
+}
+
+export function listCheckRunsForRef(org: string, repo: string, ref: string): Promise<CheckRunListResponse> {
+	return api.listCheckRunsForRef(org, repo, ref, getToken(org));
 }
 
 export async function searchIssues(

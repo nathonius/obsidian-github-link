@@ -23,6 +23,7 @@ export type CodeResponse = RestEndpointMethodTypes["repos"]["getContent"]["respo
 export type RepoSearchResponse = RestEndpointMethodTypes["search"]["repos"]["response"]["data"];
 export type TimelineCrossReferencedEvent = OpenAPI.components["schemas"]["timeline-cross-referenced-event"];
 export type IssueTimelineResponse = RestEndpointMethodTypes["issues"]["listEventsForTimeline"]["response"]["data"];
+export type CheckRunListResponse = RestEndpointMethodTypes["checks"]["listForRef"]["response"]["data"];
 
 // Param Types
 export type RepoSearchParams = RestEndpointMethodTypes["search"]["repos"]["parameters"];
