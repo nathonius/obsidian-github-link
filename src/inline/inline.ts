@@ -1,6 +1,7 @@
 import { IssueStatus, getIssueStatus, getPRStatus } from "src/github/response";
 import { getIssue, getPullRequest } from "../github/github";
 
+import type { ParsedUrl } from "../github/url-parse";
 import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
 import { setIssueIcon, setPRIcon } from "src/icon";
@@ -18,29 +19,9 @@ export function createTag(href: string): HTMLAnchorElement {
 		sections: [],
 	};
 
-	// Set default icon
-	config.sections.push(config.icon);
-	setIcon(config.icon, "github");
-
-	// Add org
-	if (parsedUrl.org) {
-		config.sections.push(
-			createSpan({
-				cls: "github-link-inline-org",
-				text: parsedUrl.org,
-			}),
-		);
-	}
-
-	// Add repo
-	if (parsedUrl.repo) {
-		config.sections.push(
-			createSpan({
-				cls: "github-link-inline-repo",
-				text: parsedUrl.repo,
-			}),
-		);
-	}
+	createIconSection(config);
+	createOrgSection(config, parsedUrl);
+	createRepoSection(config, parsedUrl);
 
 	// Add issue OR pr
 	if (parsedUrl.issue !== undefined || parsedUrl.pr !== undefined) {
@@ -51,38 +32,9 @@ export function createTag(href: string): HTMLAnchorElement {
 		}
 
 		if (parsedUrl.issue !== undefined) {
-			setIssueIcon(config.icon, IssueStatus.Open);
-			const issueContainer = createSpan({
-				cls: "github-link-inline-issue-title",
-				text: `${parsedUrl.issue}`,
-			});
-			config.sections.push(issueContainer);
-			if (parsedUrl.org && parsedUrl.repo) {
-				getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue).then((issue) => {
-					if (issue.title) {
-						const status = getIssueStatus(issue);
-						setIssueIcon(config.icon, status);
-						issueContainer.setText(issue.title);
-					}
-				});
-			}
+			createIssueSection(config, parsedUrl);
 		} else if (parsedUrl.pr !== undefined) {
-			// Get PR info
-			setPRIcon(config.icon, IssueStatus.Open);
-			const prContainer = createSpan({
-				cls: "github-link-inline-pr-title",
-				text: `${parsedUrl.pr}`,
-			});
-			config.sections.push(prContainer);
-			if (parsedUrl.org && parsedUrl.repo) {
-				getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr).then((pr) => {
-					if (pr.title) {
-						const status = getPRStatus(pr);
-						setPRIcon(config.icon, status);
-						prContainer.setText(pr.title);
-					}
-				});
-			}
+			createPullRequestSection(config, parsedUrl);
 		}
 	}
 
@@ -98,6 +50,78 @@ function createTagSection(...children: HTMLElement[]): HTMLDivElement {
 	const section = createDiv({ cls: "github-link-inline-section" });
 	section.append(...children);
 	return section;
+}
+
+function createIconSection(config: TagConfig) {
+	// Set default icon
+	config.sections.push(config.icon);
+	setIcon(config.icon, "github");
+}
+
+function createOrgSection(config: TagConfig, parsedUrl: ParsedUrl) {
+	// Add org
+	if (parsedUrl.org) {
+		config.sections.push(
+			createSpan({
+				cls: "github-link-inline-org",
+				text: parsedUrl.org,
+			}),
+		);
+	}
+}
+
+function createRepoSection(config: TagConfig, parsedUrl: ParsedUrl) {
+	// Add repo
+	if (parsedUrl.repo) {
+		config.sections.push(
+			createSpan({
+				cls: "github-link-inline-repo",
+				text: parsedUrl.repo,
+			}),
+		);
+	}
+}
+
+function createIssueSection(config: TagConfig, parsedUrl: ParsedUrl) {
+	if (parsedUrl.issue === undefined) {
+		return;
+	}
+	setIssueIcon(config.icon, IssueStatus.Open);
+	const issueContainer = createSpan({
+		cls: "github-link-inline-issue-title",
+		text: `${parsedUrl.issue}`,
+	});
+	config.sections.push(issueContainer);
+	if (parsedUrl.org && parsedUrl.repo) {
+		getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue).then((issue) => {
+			if (issue.title) {
+				const status = getIssueStatus(issue);
+				setIssueIcon(config.icon, status);
+				issueContainer.setText(issue.title);
+			}
+		});
+	}
+}
+
+function createPullRequestSection(config: TagConfig, parsedUrl: ParsedUrl) {
+	if (parsedUrl.pr === undefined) {
+		return;
+	}
+	setPRIcon(config.icon, IssueStatus.Open);
+	const prContainer = createSpan({
+		cls: "github-link-inline-pr-title",
+		text: `${parsedUrl.pr}`,
+	});
+	config.sections.push(prContainer);
+	if (parsedUrl.org && parsedUrl.repo) {
+		getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr).then((pr) => {
+			if (pr.title) {
+				const status = getPRStatus(pr);
+				setPRIcon(config.icon, status);
+				prContainer.setText(pr.title);
+			}
+		});
+	}
 }
 
 export async function InlineRenderer(el: HTMLElement) {
