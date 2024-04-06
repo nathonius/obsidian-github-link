@@ -18,3 +18,5 @@ Code must meet the following standards:
 - Pass linting using the project's ESLint config (automated as a PR check)
 - Pass a static code analysis scan by SonarCloud (automated as a PR check)
 - Review by a project maintainer
+
+It is also recommended (but not strictly required) to use [better-commits](https://github.com/Everduin94/better-commits) to generate commit messages with the correct structure and emoji.
