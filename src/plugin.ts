@@ -32,6 +32,8 @@ export class GithubLinkPlugin extends Plugin {
 			logger.info(`Cleaned ${entriesDeleted} entries from request cache.`);
 		}
 
+		// To show all icons, logger.debug(getIconIds());
+
 		this.addSettingTab(new GithubLinkPluginSettingsTab(this.app, this));
 		this.registerMarkdownPostProcessor(InlineRenderer);
 		this.registerEditorExtension(createInlineViewPlugin(this));

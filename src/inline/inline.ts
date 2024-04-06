@@ -1,10 +1,12 @@
+import type { PullResponse } from "src/github/response";
 import { IssueStatus, getIssueStatus, getPRStatus } from "src/github/response";
 import { getIssue, getPullRequest } from "../github/github";
 
 import type { ParsedUrl } from "../github/url-parse";
 import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
-import { setIssueIcon, setPRIcon } from "src/icon";
+import { setIssueIcon, setPRIcon, setPRMergeableIcon } from "src/icon";
+import { PluginSettings } from "src/plugin";
 
 interface TagConfig {
 	icon: HTMLSpanElement;
@@ -34,7 +36,7 @@ export function createTag(href: string): HTMLAnchorElement {
 		if (parsedUrl.issue !== undefined) {
 			createIssueSection(config, parsedUrl);
 		} else if (parsedUrl.pr !== undefined) {
-			createPullRequestSection(config, parsedUrl);
+			createPullRequestSection(config, parsedUrl, container);
 		}
 	}
 
@@ -103,7 +105,7 @@ function createIssueSection(config: TagConfig, parsedUrl: ParsedUrl) {
 	}
 }
 
-function createPullRequestSection(config: TagConfig, parsedUrl: ParsedUrl) {
+function createPullRequestSection(config: TagConfig, parsedUrl: ParsedUrl, tag: HTMLElement) {
 	if (parsedUrl.pr === undefined) {
 		return;
 	}
@@ -120,8 +122,22 @@ function createPullRequestSection(config: TagConfig, parsedUrl: ParsedUrl) {
 				setPRIcon(config.icon, status);
 				prContainer.setText(pr.title);
 			}
+			createPullRequestMergeableSection(config, pr, tag);
 		});
 	}
+}
+
+/**
+ * Note that this function is called AFTER the tag has been built, so it adds itself to the dom.
+ */
+function createPullRequestMergeableSection(config: TagConfig, pullRequest: PullResponse, tag: HTMLElement): void {
+	if (!PluginSettings.tagShowPRMergeable || pullRequest.mergeable === null) {
+		return;
+	}
+	const mergeableIcon = createSpan({ cls: ["github-link-inline-pr-mergeable-icon", "github-link-inline-icon"] });
+	setPRMergeableIcon(mergeableIcon, pullRequest.mergeable);
+	config.sections.push(mergeableIcon);
+	tag.appendChild(createTagSection(mergeableIcon));
 }
 
 export async function InlineRenderer(el: HTMLElement) {

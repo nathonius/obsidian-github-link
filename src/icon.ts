@@ -14,6 +14,16 @@ const PRStatusText: Readonly<Record<IssueStatus, string>> = {
 	[IssueStatus.Done]: "Pull request merged",
 };
 
+const PRMergeableIcon: Readonly<Record<`${boolean}`, string>> = {
+	true: "lucide-check",
+	false: "lucide-x",
+};
+
+const PRMergeableText: Readonly<Record<`${boolean}`, string>> = {
+	true: "Mergeable",
+	false: "Not mergeable",
+};
+
 const IssueIcon: Readonly<Record<IssueStatus, string>> = {
 	[IssueStatus.Open]: "lucide-circle-dot",
 	[IssueStatus.Closed]: "lucide-circle-slash",
@@ -26,7 +36,7 @@ const IssueStatusText: Readonly<Record<IssueStatus, string>> = {
 	[IssueStatus.Done]: "Issue closed as completed",
 };
 
-export function setPRIcon(icon: HTMLElement, status: IssueStatus) {
+export function setPRIcon(icon: HTMLElement, status: IssueStatus): void {
 	if (PluginSettings.tagTooltips) {
 		icon.setAttribute("aria-label", PRStatusText[status]);
 	}
@@ -36,7 +46,7 @@ export function setPRIcon(icon: HTMLElement, status: IssueStatus) {
 	icon.dataset.status = status;
 }
 
-export function setIssueIcon(icon: HTMLElement, status: IssueStatus) {
+export function setIssueIcon(icon: HTMLElement, status: IssueStatus): void {
 	if (PluginSettings.tagTooltips) {
 		icon.setAttribute("aria-label", IssueStatusText[status]);
 	}
@@ -44,4 +54,14 @@ export function setIssueIcon(icon: HTMLElement, status: IssueStatus) {
 	setIcon(icon, IssueIcon[status]);
 	icon.classList.add("issue");
 	icon.dataset.status = status;
+}
+
+export function setPRMergeableIcon(icon: HTMLElement, mergeable: boolean): void {
+	if (PluginSettings.tagTooltips) {
+		icon.setAttribute("aria-label", PRMergeableText[`${mergeable}`]);
+	}
+
+	setIcon(icon, PRMergeableIcon[`${mergeable}`]);
+	icon.classList.add("pull-request-mergeable");
+	icon.dataset.status = `${mergeable}`;
 }

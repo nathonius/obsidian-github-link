@@ -22,10 +22,11 @@ export interface GithubLinkPluginSettings {
 	defaultPageSize: number;
 	logLevel: LogLevel;
 	tagTooltips: boolean;
+	tagShowPRMergeable: boolean;
 	cacheIntervalSeconds: number;
 	maxCacheAgeHours: number;
 	minRequestSeconds: number;
-	cache: string[] | null;
+	cache: string[] | null; // TODO: Move this out of settings; it's not a setting it's just part of plugin data.
 }
 
 export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
 	defaultPageSize: 10,
 	logLevel: LogLevel.Error,
 	tagTooltips: false,
+	tagShowPRMergeable: false,
 	cacheIntervalSeconds: 60,
 	maxCacheAgeHours: 120,
 	minRequestSeconds: 60,
@@ -261,6 +263,17 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				toggle.setValue(PluginSettings.tagTooltips);
 				toggle.onChange((value) => {
 					PluginSettings.tagTooltips = value;
+					this.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Pull request mergeability")
+			.setDesc("Add an icon to pull request tags to show whether or not the PR is mergeable")
+			.addToggle((toggle) => {
+				toggle.setValue(PluginSettings.tagShowPRMergeable);
+				toggle.onChange((value) => {
+					PluginSettings.tagShowPRMergeable = value;
 					this.saveSettings();
 				});
 			});

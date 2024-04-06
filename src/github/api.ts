@@ -1,4 +1,5 @@
 import type {
+	CheckRunListResponse,
 	CodeResponse,
 	IssueListParams,
 	IssueListResponse,
@@ -97,6 +98,19 @@ export class GitHubApi {
 		const url = this.addParams(`${GitHubApi.baseApi}/search/issues`, params);
 		const result = await this.githubRequest({ url }, token);
 		return result.json as IssueSearchResponse;
+	}
+
+	public async listCheckRunsForRef(
+		org: string,
+		repo: string,
+		ref: string,
+		token?: string,
+	): Promise<CheckRunListResponse> {
+		const result = await this.githubRequest(
+			{ url: `${GitHubApi.baseApi}/${org}/${repo}/commits/${ref}/check-runs` },
+			token,
+		);
+		return result.json;
 	}
 
 	private async githubRequest(
