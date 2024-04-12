@@ -5,6 +5,8 @@ export interface GithubAccount {
 	name: string;
 	orgs: string[];
 	token: string;
+	customOAuth?: boolean;
+	clientId?: string;
 }
 
 export interface GithubLinkPluginData {

@@ -27,7 +27,9 @@ export class AccountSettings {
 		container: HTMLElement,
 		saveNewAccountCallback: (account: GithubAccount) => Promise<void>,
 	): void {
-		this.newAccount = { id: crypto.randomUUID(), name: "", orgs: [], token: "" };
+		if (!this.newAccount) {
+			this.newAccount = { id: crypto.randomUUID(), name: "", orgs: [], token: "", customOAuth: false };
+		}
 		// TODO: Combine the new account and existing account rendering to reduce duplication
 		const accountContainer = container.createDiv();
 		const header = accountContainer.createEl("h3", { text: "New account" });
@@ -63,6 +65,36 @@ export class AccountSettings {
 				});
 			});
 
+		const oauthDesc = createFragment((fragment) => {
+			fragment.appendText(
+				"You can optionally provide your own OAuth app for more control and a larger request rate limit. See the ",
+			);
+			fragment.createEl("a", {
+				text: "plugin documentation",
+				href: "https://github.com/nathonius/obsidian-github-link/wiki/Authentication#custom-oauth-app",
+			});
+			fragment.appendText(" for instructions.");
+		});
+		const customOAuthSetting = new Setting(accountContainer)
+			.setName("Use custom OAuth app")
+			.setDesc(oauthDesc)
+			.addToggle((toggle) => {
+				toggle.setValue(this.newAccount!.customOAuth ?? false);
+				toggle.onChange((value) => {
+					this.newAccount!.customOAuth = value;
+					this.displayCallback();
+				});
+			});
+		if (this.newAccount.customOAuth) {
+			customOAuthSetting.addText((text) => {
+				text.setValue(this.newAccount!.clientId ?? "");
+				text.setPlaceholder("Client ID");
+				text.onChange((value) => {
+					this.newAccount!.clientId = value;
+				});
+			});
+		}
+
 		new Setting(accountContainer)
 			.setName("Token")
 			.setDesc(
@@ -93,7 +125,7 @@ export class AccountSettings {
 			button.setTooltip("Save account");
 			button.setIcon("save");
 			button.onClick(async () => {
-				if (!this.newAccount?.name || !this.newAccount.token) {
+				if (!this.newAccount?.name) {
 					return;
 				}
 				await saveNewAccountCallback(this.newAccount);
@@ -137,6 +169,34 @@ export class AccountSettings {
 				});
 			});
 
+		const oauthDesc = createFragment((fragment) => {
+			fragment.appendText(
+				"You can optionally provide your own OAuth app for more control and a larger request rate limit. See the ",
+			);
+			fragment.createEl("a", { text: "plugin documentation", href: "#" });
+			fragment.appendText(" for instructions.");
+		});
+		const customOAuthSetting = new Setting(accountContainer)
+			.setName("Use custom OAuth app")
+			.setDesc(oauthDesc)
+			.addToggle((toggle) => {
+				toggle.setValue(account.customOAuth ?? false);
+				toggle.onChange((value) => {
+					account.customOAuth = value;
+					this.displayCallback();
+				});
+			});
+		if (account.customOAuth) {
+			customOAuthSetting.addText((text) => {
+				text.setValue(account.clientId ?? "");
+				text.setPlaceholder("Client ID");
+				text.onChange((value) => {
+					account.clientId = value;
+					this.saveCallback();
+				});
+			});
+		}
+
 		new Setting(accountContainer)
 			.setName("Token")
 			.setDesc(
@@ -145,7 +205,11 @@ export class AccountSettings {
 			.addButton((button) => {
 				button.setButtonText("Generate Token");
 				button.onClick(async () => {
-					const authResult = await auth(this.tokenVerification.bind(this))({
+					const customClientId = account.customOAuth ? account.clientId : undefined;
+					const authResult = await auth(
+						this.tokenVerification.bind(this),
+						customClientId,
+					)({
 						type: "oauth",
 					});
 					this.authModal?.close();

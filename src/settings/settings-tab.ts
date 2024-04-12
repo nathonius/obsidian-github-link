@@ -43,6 +43,10 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			});
 		});
 
+		if (this.accountSettings.newAccount) {
+			this.accountSettings.renderNewAccount(newAccountSection, this.saveNewAccount.bind(this));
+		}
+
 		new Setting(containerEl)
 			.setName("Default account")
 			.setDesc("The account that will be used if no other users or organizations match.")

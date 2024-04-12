@@ -4,6 +4,8 @@ import { createOAuthDeviceAuth } from "@octokit/auth-oauth-device";
 import { request } from "@octokit/request";
 import { requestUrl } from "obsidian";
 
+const defaultClientId = "baf0370cb98e1387d244";
+
 function getHeaders(headers: HeadersInit | undefined): Record<string, string> | undefined {
 	if (!headers) {
 		return undefined;
@@ -71,10 +73,10 @@ async function doFetch(url: RequestInfo | URL, options?: RequestInit | undefined
 	return partialResult as Response;
 }
 
-export const auth = (verificationHandler: OnVerificationCallback) =>
+export const auth = (verificationHandler: OnVerificationCallback, clientId: string = defaultClientId) =>
 	createOAuthDeviceAuth({
 		clientType: "oauth-app",
-		clientId: "baf0370cb98e1387d244",
+		clientId,
 		scopes: ["repo"],
 		onVerification: verificationHandler,
 		request: request.defaults({
