@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [0.7.0] - 2024-04-11
+
+### Changed
+
+- If a link is just a repo, the username or organization will be included as well
+- Links to PRs will show a simple mergeable or not mergeable PR status
+- Added support for custom oauth app. See [the wiki](https://github.com/nathonius/obsidian-github-link/wiki/Authentication#custom-oauth-app) for more info!
+
 ## [0.6.0] - 2024-03-29
 
 ### Changed
@@ -89,6 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[0.7.0]: https://github.com/nathonius/obsidian-github-link/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/nathonius/obsidian-github-link/compare/0.5.1...0.6.0
 [0.5.1]: https://github.com/nathonius/obsidian-github-link/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/nathonius/obsidian-github-link/compare/0.4.0...0.5.0
