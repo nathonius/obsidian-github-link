@@ -2,49 +2,21 @@
 import { Notice, PluginSettingTab, Setting } from "obsidian";
 
 import type { App } from "obsidian";
-import { AuthModal } from "./auth-modal";
-import type { GithubLinkPlugin } from "./plugin";
-import { LogLevel } from "./logger";
-import { PluginSettings, getCache } from "./plugin";
-import type { Verification } from "@octokit/auth-oauth-device/dist-types/types";
-import { auth } from "./github/auth";
-
-export interface GithubAccount {
-	id: string;
-	name: string;
-	orgs: string[];
-	token: string;
-}
-
-export interface GithubLinkPluginSettings {
-	accounts: GithubAccount[];
-	defaultAccount?: string;
-	defaultPageSize: number;
-	logLevel: LogLevel;
-	tagTooltips: boolean;
-	tagShowPRMergeable: boolean;
-	cacheIntervalSeconds: number;
-	maxCacheAgeHours: number;
-	minRequestSeconds: number;
-	cache: string[] | null; // TODO: Move this out of settings; it's not a setting it's just part of plugin data.
-}
-
-export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
-	accounts: [],
-	defaultPageSize: 10,
-	logLevel: LogLevel.Error,
-	tagTooltips: false,
-	tagShowPRMergeable: false,
-	cacheIntervalSeconds: 60,
-	maxCacheAgeHours: 120,
-	minRequestSeconds: 60,
-	cache: null,
-};
+import type { GithubLinkPlugin } from "../plugin";
+import { LogLevel } from "../logger";
+import { PluginData, PluginSettings, getCache } from "../plugin";
+import type { GithubAccount, GithubLinkPluginData } from "./types";
+import { DEFAULT_SETTINGS } from "./types";
+import { AccountSettings } from "./account";
 
 export class GithubLinkPluginSettingsTab extends PluginSettingTab {
-	authModal: AuthModal | null = null;
-	newAccount: GithubAccount | null = null;
-
+	private readonly accountSettings = new AccountSettings(
+		this.app,
+		this.containerEl,
+		this.saveSettings.bind(this),
+		this.display.bind(this),
+		this.removeAccount.bind(this),
+	);
 	constructor(
 		public app: App,
 		private readonly plugin: GithubLinkPlugin,
@@ -52,7 +24,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
-	display() {
+	public display() {
 		const { containerEl } = this;
 		containerEl.empty();
 		containerEl.createEl("h2", { text: "GitHub authentication" });
@@ -61,15 +33,19 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			text: "No authentication is required to reference public repositories. Providing a token allows referencing private repos, but the token is stored in plain text. You can create multiple accounts for multiple tokens.",
 		});
 
-		new Setting(containerEl).setName("Add account").addButton((button) => {
+		const newAccountSection = containerEl.createDiv();
+		new Setting(newAccountSection).setName("Add account").addButton((button) => {
 			button.setButtonText("");
 			button.setIcon("plus");
 			button.setTooltip("Add Account");
 			button.onClick(() => {
-				this.newAccount = { id: crypto.randomUUID(), name: "", orgs: [], token: "" };
-				this.display();
+				this.accountSettings.renderNewAccount(newAccountSection, this.saveNewAccount.bind(this));
 			});
 		});
+
+		if (this.accountSettings.newAccount) {
+			this.accountSettings.renderNewAccount(newAccountSection, this.saveNewAccount.bind(this));
+		}
 
 		new Setting(containerEl)
 			.setName("Default account")
@@ -90,144 +66,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 			});
 
-		// TODO: Combine the new account and existing account rendering to reduce duplication
-		if (this.newAccount !== null) {
-			const accountContainer = containerEl.createDiv();
-			const header = accountContainer.createEl("h3", { text: "New account" });
-
-			new Setting(accountContainer)
-				.setName("Account name")
-				.setDesc("Required.")
-				.addText((text) => {
-					text.setValue(this.newAccount!.name);
-					text.onChange((value) => {
-						this.newAccount!.name = value;
-						header.setText(value ?? "New account");
-					});
-				})
-				.addButton((button) => {
-					button.setIcon("trash");
-					button.setTooltip("Delete account");
-					button.onClick(() => {
-						this.newAccount = null;
-						this.display();
-					});
-				});
-
-			new Setting(accountContainer)
-				.setName("Orgs and users")
-				.setDesc(
-					"A comma separated list of the GitHub organizations and users this account should be used for. Optional.",
-				)
-				.addTextArea((text) => {
-					text.setValue(this.newAccount!.orgs.join(", "));
-					text.onChange((value) => {
-						this.newAccount!.orgs = value.split(",");
-					});
-				});
-
-			new Setting(accountContainer)
-				.setName("Token")
-				.setDesc(
-					"A GitHub token, which can be generated automatically (recommended) or by creating a personal access token (not recommended unless org does not allow OAuth tokens). Required.",
-				)
-				.addButton((button) => {
-					button.setButtonText("Generate Token");
-					button.onClick(async () => {
-						const authResult = await auth(this.tokenVerification.bind(this))({
-							type: "oauth",
-						});
-						this.authModal?.close();
-						this.authModal = null;
-						this.newAccount!.token = authResult.token;
-						this.display();
-					});
-				})
-				.addText((text) => {
-					text.setPlaceholder("Personal Access Token / OAuth Token");
-					text.setValue(this.newAccount!.token);
-					text.onChange((value) => {
-						this.newAccount!.token = value;
-					});
-				});
-
-			new Setting(accountContainer).addButton((button) => {
-				button.setButtonText("Save account");
-				button.setTooltip("Save account");
-				button.setIcon("save");
-				button.onClick(async () => {
-					if (!this.newAccount?.name || !this.newAccount.token) {
-						return;
-					}
-					PluginSettings.accounts.unshift(this.newAccount);
-					await this.saveSettings();
-					this.newAccount = null;
-					this.display();
-				});
-			});
-		}
-
-		for (const account of PluginSettings.accounts) {
-			const accountContainer = containerEl.createDiv();
-			accountContainer.createEl("h3", { text: account.name });
-
-			new Setting(accountContainer)
-				.setName("Account name")
-				.addText((text) => {
-					text.setValue(account.name);
-					text.onChange((value) => {
-						account.name = value;
-						this.saveSettings();
-					});
-				})
-				.addButton((button) => {
-					button.setIcon("trash");
-					button.setTooltip("Delete account");
-					button.onClick(async () => {
-						PluginSettings.accounts.remove(account);
-						await this.saveSettings();
-						this.display();
-					});
-				});
-
-			new Setting(accountContainer)
-				.setName("Orgs and users")
-				.setDesc("A comma separated list of the GitHub organizations and users this account should be used for.")
-				.addTextArea((text) => {
-					text.setValue(account.orgs.join(", "));
-					text.onChange((value) => {
-						account.orgs = value.split(",").map((org) => org.trim());
-						this.saveSettings();
-					});
-				});
-
-			new Setting(accountContainer)
-				.setName("Token")
-				.setDesc(
-					"A GitHub token, which can be generated automatically (recommended) or by creating a personal access token (not recommended unless org does not allow OAuth tokens).",
-				)
-				.addButton((button) => {
-					button.setButtonText("Generate Token");
-					button.onClick(async () => {
-						const authResult = await auth(this.tokenVerification.bind(this))({
-							type: "oauth",
-						});
-						this.authModal?.close();
-						this.authModal = null;
-						account.token = authResult.token;
-						await this.saveSettings();
-						this.display();
-					});
-				})
-				.addText((text) => {
-					text.setPlaceholder("Personal Access Token / OAuth Token");
-					text.setValue(account.token);
-					text.onChange((value) => {
-						account.token = value;
-						this.saveSettings();
-					});
-				});
-		}
+		this.accountSettings.render(PluginSettings.accounts);
 
 		containerEl.createEl("h2", { text: "Other settings" });
 
@@ -374,7 +213,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				button.setButtonText("Clear cache");
 				button.onClick(async () => {
 					const itemsDeleted = getCache().clean(new Date());
-					PluginSettings.cache = null;
+					PluginData.cache = null;
 					await this.saveSettings();
 					new Notice(`Removed ${itemsDeleted} stored items from GitHub Link cache.`, 3000);
 				});
@@ -408,11 +247,20 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 	}
 
 	private saveSettings() {
-		return this.plugin.saveData(PluginSettings);
+		const newData: GithubLinkPluginData = {
+			cache: PluginData.cache,
+			settings: PluginSettings,
+		};
+		return this.plugin.saveData(newData);
 	}
 
-	private tokenVerification(verification: Verification) {
-		this.authModal = new AuthModal(this.app, verification);
-		this.authModal.open();
+	private async removeAccount(account: GithubAccount): Promise<void> {
+		PluginSettings.accounts.remove(account);
+		await this.saveSettings();
+	}
+
+	private async saveNewAccount(account: GithubAccount): Promise<void> {
+		PluginSettings.accounts.unshift(account);
+		await this.saveSettings();
 	}
 }
