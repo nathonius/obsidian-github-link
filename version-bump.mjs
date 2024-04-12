@@ -1,14 +1,30 @@
-import { readFileSync, writeFileSync } from "fs";
+import fs from "fs";
+import { execSync } from "child_process";
 
-const targetVersion = process.env.npm_package_version;
+const version = process.argv[2];
 
-// read minAppVersion from manifest.json and bump version to target version
-let manifest = JSON.parse(readFileSync("manifest.json", "utf8"));
-const { minAppVersion } = manifest;
-manifest.version = targetVersion;
-writeFileSync("manifest.json", JSON.stringify(manifest, null, "\t"));
+if (!version) {
+	console.error("Please provide a version number as a command line argument.");
+	process.exit(1);
+}
 
-// update versions.json with target version and minAppVersion from manifest.json
-let versions = JSON.parse(readFileSync("versions.json", "utf8"));
-versions[targetVersion] = minAppVersion;
-writeFileSync("versions.json", JSON.stringify(versions, null, "\t"));
+// Update package.json
+const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+packageJson.version = version;
+fs.writeFileSync("package.json", JSON.stringify(packageJson, null, "\t"));
+
+// Update manifest.json
+const manifestJson = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
+manifestJson.version = version;
+fs.writeFileSync("manifest.json", JSON.stringify(manifestJson, null, "\t"));
+
+// Update versions.json
+const versionsJson = JSON.parse(fs.readFileSync("versions.json", "utf8"));
+const hostSoftwareVersion = Object.values(versionsJson)[0]; // Assuming the first entry is the previous version
+const newVersionsJson = { [version]: hostSoftwareVersion, ...versionsJson };
+fs.writeFileSync("versions.json", JSON.stringify(newVersionsJson, null, "\t"));
+
+// Update package-lock.json by running npm install
+execSync("npm install", { stdio: "inherit" });
+
+console.log("Version updated successfully.");
