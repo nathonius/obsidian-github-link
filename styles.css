@@ -245,6 +245,11 @@ body.theme-dark {
 	background-color: var(--gh-color-danger-subtle);
 	border-color: var(--gh-color-danger-emphasis);
 }
+.github-link-inline-section:has(> .github-link-inline-error-icon) {
+	color: var(--gh-color-closed-fg);
+	background-color: var(--gh-color-danger-subtle);
+	border-color: var(--gh-color-danger-emphasis);
+}
 
 .github-link-inline-section:has(> .github-link-inline-repo) {
 	background-color: var(--gh-color-accent-subtle);

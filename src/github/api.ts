@@ -25,17 +25,21 @@ export class GitHubApi {
 	private static rateLimitReset: Date | null = null;
 	private static q = new Queue({ autostart: true, concurrency: 1 });
 
-	public async queueRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
+	public queueRequest(config: RequestUrlParam, token?: string): Promise<RequestUrlResponse> {
 		// Responses we (probably) have cached will skip the queue
 		if (getCache().get(config)) {
 			return this.githubRequest(config, token);
 		}
 
-		const { resolve, promise } = promiseWithResolvers<RequestUrlResponse>();
+		const { resolve, reject, promise } = promiseWithResolvers<RequestUrlResponse>();
 		GitHubApi.q.push(() => {
-			return this.githubRequest(config, token).then((result) => {
-				resolve(result);
-			});
+			return this.githubRequest(config, token)
+				.then((result) => {
+					resolve(result);
+				})
+				.catch((err) => {
+					reject(err);
+				});
 		});
 		return promise;
 	}
@@ -175,7 +179,8 @@ export class GitHubApi {
 
 			return response;
 		} catch (err) {
-			throw new RequestError(err as Error);
+			logger.debug(err);
+			return Promise.reject(new RequestError(err as Error));
 		}
 	}
 
