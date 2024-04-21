@@ -19,7 +19,7 @@ export function getCache(): RequestCache {
 export class GithubLinkPlugin extends Plugin {
 	public cacheInterval: number | undefined;
 	async onload() {
-		let data = await this.loadData();
+		let data = (await this.loadData()) || {};
 
 		// Migrate settings from data root to settings -- remove in v1.0.0
 		if (data.accounts) {
