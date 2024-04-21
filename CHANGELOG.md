@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [0.7.1] - 2024-04-21
+
+### Fixed
+
+- ⚡ Plugin data is initialized if no data is present on plugin load. Thanks @agriffis!
+
 ## [0.7.0] - 2024-04-11
 
 ### Changed
@@ -97,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[0.7.1]: https://github.com/nathonius/obsidian-github-link/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/nathonius/obsidian-github-link/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/nathonius/obsidian-github-link/compare/0.5.1...0.6.0
 [0.5.1]: https://github.com/nathonius/obsidian-github-link/compare/0.5.0...0.5.1
