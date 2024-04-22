@@ -36,6 +36,6 @@ export class AuthModal extends Modal {
 	}
 
 	private copyToClipboard() {
-		window.navigator.clipboard.writeText(this.verification.user_code);
+		void window.navigator.clipboard.writeText(this.verification.user_code);
 	}
 }

@@ -91,7 +91,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				slider.onChange((value) => {
 					displayValue.setText(value.toString());
 					PluginSettings.defaultPageSize = value;
-					this.saveSettings();
+					void this.saveSettings();
 				});
 			});
 
@@ -102,7 +102,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				toggle.setValue(PluginSettings.tagTooltips);
 				toggle.onChange((value) => {
 					PluginSettings.tagTooltips = value;
-					this.saveSettings();
+					void this.saveSettings();
 				});
 			});
 
@@ -113,7 +113,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				toggle.setValue(PluginSettings.tagShowPRMergeable);
 				toggle.onChange((value) => {
 					PluginSettings.tagShowPRMergeable = value;
-					this.saveSettings();
+					void this.saveSettings();
 				});
 			});
 
@@ -241,7 +241,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				dropdown.setValue(PluginSettings.logLevel.toString());
 				dropdown.onChange((value) => {
 					PluginSettings.logLevel = Number(value);
-					this.saveSettings();
+					void this.saveSettings();
 				});
 			});
 	}

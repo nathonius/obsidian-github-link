@@ -14,7 +14,7 @@ const ALL_COLUMNS = {
 	[QueryType.Repo]: RepoColumns,
 };
 
-export async function renderTable<T extends { items: unknown[] } | unknown[]>(
+export function renderTable<T extends { items: unknown[] } | unknown[]>(
 	params: BaseParams,
 	result: T,
 	el: HTMLElement,
@@ -39,7 +39,9 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 			cls: "clickable-icon",
 			attr: { "aria-label": "Refresh Results" },
 		});
-		refreshButton.addEventListener("click", () => renderFn(el, true));
+		refreshButton.addEventListener("click", () => {
+			void renderFn(el, true);
+		});
 		setIcon(refreshButton, "refresh-cw");
 	}
 
@@ -65,7 +67,7 @@ export async function renderTable<T extends { items: unknown[] } | unknown[]>(
 			const cell = tr.createEl("td");
 			const renderer = ALL_COLUMNS[params.queryType][col];
 			if (renderer) {
-				renderer.cell(row, cell);
+				void renderer.cell(row, cell);
 			} else {
 				const cellVal = getProp(row, col);
 				if (cellVal !== null) {

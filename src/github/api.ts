@@ -114,7 +114,7 @@ export class GitHubApi {
 			{ url: `${GitHubApi.baseApi}/${org}/${repo}/commits/${ref}/check-runs` },
 			token,
 		);
-		return result.json;
+		return result.json as CheckRunListResponse;
 	}
 
 	private async githubRequest(

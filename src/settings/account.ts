@@ -14,7 +14,7 @@ export class AccountSettings {
 		private readonly container: HTMLElement,
 		private readonly saveCallback: () => Promise<void>,
 		private readonly displayCallback: () => void,
-		private readonly removeCallback: (account: GithubAccount) => void,
+		private readonly removeCallback: (account: GithubAccount) => Promise<void>,
 	) {}
 
 	public render(accounts: GithubAccount[]): void {
@@ -145,14 +145,14 @@ export class AccountSettings {
 				text.setValue(account.name);
 				text.onChange((value) => {
 					account.name = value;
-					this.saveCallback();
+					void this.saveCallback();
 				});
 			})
 			.addButton((button) => {
 				button.setIcon("trash");
 				button.setTooltip("Delete account");
 				button.onClick(async () => {
-					this.removeCallback(account);
+					await this.removeCallback(account);
 					await this.saveCallback();
 					this.displayCallback();
 				});
@@ -165,7 +165,7 @@ export class AccountSettings {
 				text.setValue(account.orgs.join(", "));
 				text.onChange((value) => {
 					account.orgs = value.split(",").map((org) => org.trim());
-					this.saveCallback();
+					void this.saveCallback();
 				});
 			});
 
@@ -192,7 +192,7 @@ export class AccountSettings {
 				text.setPlaceholder("Client ID");
 				text.onChange((value) => {
 					account.clientId = value;
-					this.saveCallback();
+					void this.saveCallback();
 				});
 			});
 		}
@@ -224,7 +224,7 @@ export class AccountSettings {
 				text.setValue(account.token);
 				text.onChange((value) => {
 					account.token = value;
-					this.saveCallback();
+					void this.saveCallback();
 				});
 			});
 	}

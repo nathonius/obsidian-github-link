@@ -161,7 +161,7 @@ function createErrorSection(config: TagConfig, container: HTMLAnchorElement, err
 	container.appendChild(createTagSection(errorIcon));
 }
 
-export async function InlineRenderer(el: HTMLElement) {
+export function InlineRenderer(el: HTMLElement) {
 	const githubLinks = el.querySelectorAll<HTMLAnchorElement>(`a.external-link[href^="https://github.com"]`);
 	for (const anchor of Array.from(githubLinks)) {
 		if (anchor.href === anchor.innerText) {
