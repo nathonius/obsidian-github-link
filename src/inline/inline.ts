@@ -7,6 +7,7 @@ import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
 import { setIssueIcon, setPRIcon, setPRMergeableIcon } from "src/icon";
 import { PluginSettings } from "src/plugin";
+import { RequestError } from "src/util";
 
 interface TagConfig {
 	icon: HTMLSpanElement;
@@ -34,7 +35,7 @@ export function createTag(href: string): HTMLAnchorElement {
 		}
 
 		if (parsedUrl.issue !== undefined) {
-			createIssueSection(config, parsedUrl);
+			createIssueSection(config, parsedUrl, container);
 		} else if (parsedUrl.pr !== undefined) {
 			createPullRequestSection(config, parsedUrl, container);
 		}
@@ -84,7 +85,7 @@ function createRepoSection(config: TagConfig, parsedUrl: ParsedUrl) {
 	}
 }
 
-function createIssueSection(config: TagConfig, parsedUrl: ParsedUrl) {
+function createIssueSection(config: TagConfig, parsedUrl: ParsedUrl, container: HTMLAnchorElement) {
 	if (parsedUrl.issue === undefined) {
 		return;
 	}
@@ -95,17 +96,21 @@ function createIssueSection(config: TagConfig, parsedUrl: ParsedUrl) {
 	});
 	config.sections.push(issueContainer);
 	if (parsedUrl.org && parsedUrl.repo) {
-		getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue).then((issue) => {
-			if (issue.title) {
-				const status = getIssueStatus(issue);
-				setIssueIcon(config.icon, status);
-				issueContainer.setText(issue.title);
-			}
-		});
+		getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue)
+			.then((issue) => {
+				if (issue.title) {
+					const status = getIssueStatus(issue);
+					setIssueIcon(config.icon, status);
+					issueContainer.setText(issue.title);
+				}
+			})
+			.catch((err) => {
+				createErrorSection(config, container, err);
+			});
 	}
 }
 
-function createPullRequestSection(config: TagConfig, parsedUrl: ParsedUrl, tag: HTMLElement) {
+function createPullRequestSection(config: TagConfig, parsedUrl: ParsedUrl, container: HTMLAnchorElement) {
 	if (parsedUrl.pr === undefined) {
 		return;
 	}
@@ -116,28 +121,44 @@ function createPullRequestSection(config: TagConfig, parsedUrl: ParsedUrl, tag: 
 	});
 	config.sections.push(prContainer);
 	if (parsedUrl.org && parsedUrl.repo) {
-		getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr).then((pr) => {
-			if (pr.title) {
-				const status = getPRStatus(pr);
-				setPRIcon(config.icon, status);
-				prContainer.setText(pr.title);
-			}
-			createPullRequestMergeableSection(config, pr, tag);
-		});
+		getPullRequest(parsedUrl.org, parsedUrl.repo, parsedUrl.pr)
+			.then((pr) => {
+				if (pr.title) {
+					const status = getPRStatus(pr);
+					setPRIcon(config.icon, status);
+					prContainer.setText(pr.title);
+				}
+				createPullRequestMergeableSection(config, pr, container);
+			})
+			.catch((err) => {
+				createErrorSection(config, container, err);
+			});
 	}
 }
 
 /**
  * Note that this function is called AFTER the tag has been built, so it adds itself to the dom.
  */
-function createPullRequestMergeableSection(config: TagConfig, pullRequest: PullResponse, tag: HTMLElement): void {
+function createPullRequestMergeableSection(config: TagConfig, pullRequest: PullResponse, container: HTMLElement): void {
 	if (!PluginSettings.tagShowPRMergeable || pullRequest.mergeable === null) {
 		return;
 	}
 	const mergeableIcon = createSpan({ cls: ["github-link-inline-pr-mergeable-icon", "github-link-inline-icon"] });
 	setPRMergeableIcon(mergeableIcon, pullRequest.mergeable);
 	config.sections.push(mergeableIcon);
-	tag.appendChild(createTagSection(mergeableIcon));
+	container.appendChild(createTagSection(mergeableIcon));
+}
+
+function createErrorSection(config: TagConfig, container: HTMLAnchorElement, error: unknown) {
+	const errorIcon = createSpan({
+		cls: ["github-link-inline-error-icon", "github-link-inline-icon"],
+	});
+	setIcon(errorIcon, "lucide-alert-triangle");
+	if (error instanceof RequestError) {
+		errorIcon.ariaLabel = error.message;
+	}
+	config.sections.push(errorIcon);
+	container.appendChild(createTagSection(errorIcon));
 }
 
 export async function InlineRenderer(el: HTMLElement) {

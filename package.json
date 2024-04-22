@@ -28,7 +28,6 @@
 		"obsidian": "latest",
 		"octokit": "^3.1.2",
 		"prettier": "^3.2.5",
-		"queue": "^7.0.0",
 		"tslib": "2.6.2",
 		"typescript": "5.3.3"
 	},
@@ -37,6 +36,7 @@
 		"@octokit/core": "^5.1.0",
 		"@octokit/openapi-types": "^19.1.0",
 		"@octokit/plugin-rest-endpoint-methods": "^10.3.0",
-		"@octokit/request": "^8.2.0"
+		"@octokit/request": "^8.2.0",
+		"queue": "^7.0.0"
 	}
 }
