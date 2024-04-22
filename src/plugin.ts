@@ -70,16 +70,20 @@ export class GithubLinkPlugin extends Plugin {
 	 * Save cache at regular interval
 	 */
 	public setCacheInterval(): void {
+		const checkCache = async () => {
+			logger.debug("Checking if cache needs a save.");
+			if (cache.cacheUpdated) {
+				PluginData.cache = cache.toJSON();
+				await this.saveData(PluginData);
+				cache.cacheUpdated = false;
+				logger.info(`Saved request cache with ${PluginData.cache?.length} items.`);
+			}
+		};
+
 		window.clearInterval(this.cacheInterval);
 		this.cacheInterval = this.registerInterval(
-			window.setInterval(async () => {
-				logger.debug("Checking if cache needs a save.");
-				if (cache.cacheUpdated) {
-					PluginData.cache = cache.toJSON();
-					await this.saveData(PluginData);
-					cache.cacheUpdated = false;
-					logger.info(`Saved request cache with ${PluginData.cache?.length} items.`);
-				}
+			window.setInterval(() => {
+				void checkCache();
 			}, PluginSettings.cacheIntervalSeconds * 1000),
 		);
 	}
