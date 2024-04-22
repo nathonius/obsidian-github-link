@@ -43,7 +43,7 @@ export async function QueryProcessor(
 			}
 		}
 		if (response) {
-			void renderTable(params, response, element, renderFn, externalLink);
+			renderTable(params, response, element, renderFn, externalLink);
 		}
 	};
 	await renderFn(el);
