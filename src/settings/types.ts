@@ -1,4 +1,4 @@
-import { LogLevel } from "src/logger";
+import { LogLevel } from "../logger";
 
 export interface GithubAccount {
 	id: string;
