@@ -6,13 +6,14 @@ on:
 jobs:
   build:
     uses: "./.github/workflows/build.yml"
-  lint:
+  check:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-      - name: Lint
+      - name: Lint and Test
         run: |
           npm install
           npm run lint
+          npm run test
