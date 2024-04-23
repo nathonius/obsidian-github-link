@@ -1,6 +1,6 @@
 /* eslint-disable unused-imports/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Extension } from "@codemirror/state";
+import { jest } from "@jest/globals";
 import type { Editor } from "codemirror";
 import type {
 	App,
@@ -9,16 +9,28 @@ import type {
 	EditorSuggest,
 	EventRef,
 	HoverLinkSource,
-	MarkdownPostProcessor,
-	MarkdownPostProcessorContext,
 	ObsidianProtocolHandler,
 	Plugin,
 	PluginManifest,
-	PluginSettingTab,
 	ViewCreator,
 } from "obsidian";
 
 export class PluginMock implements Plugin {
+	public data: any = undefined;
+	public intervals: number[] = [];
+	public addSettingTab = jest.fn();
+	public registerEditorExtension = jest.fn();
+	public registerInterval = jest.fn((interval: number) => {
+		this.intervals.push(interval);
+		return interval;
+	});
+	public registerMarkdownCodeBlockProcessor = jest.fn(() => {
+		return jest.fn(() => Promise.resolve());
+	});
+	public registerMarkdownPostProcessor = jest.fn(() => {
+		return jest.fn(() => Promise.resolve());
+	});
+
 	constructor(
 		public app: App,
 		public manifest: PluginManifest,
@@ -33,9 +45,6 @@ export class PluginMock implements Plugin {
 	addCommand(command: Command): Command {
 		throw new Error("Method not implemented.");
 	}
-	addSettingTab(settingTab: PluginSettingTab): void {
-		throw new Error("Method not implemented.");
-	}
 	registerView(type: string, viewCreator: ViewCreator): void {
 		throw new Error("Method not implemented.");
 	}
@@ -45,25 +54,11 @@ export class PluginMock implements Plugin {
 	registerExtensions(extensions: string[], viewType: string): void {
 		throw new Error("Method not implemented.");
 	}
-	registerMarkdownPostProcessor(
-		postProcessor: MarkdownPostProcessor,
-		sortOrder?: number | undefined,
-	): MarkdownPostProcessor {
-		throw new Error("Method not implemented.");
-	}
-	registerMarkdownCodeBlockProcessor(
-		language: string,
-		handler: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => void | Promise<any>,
-		sortOrder?: number | undefined,
-	): MarkdownPostProcessor {
-		throw new Error("Method not implemented.");
-	}
+
 	registerCodeMirror(callback: (cm: Editor) => any): void {
 		throw new Error("Method not implemented.");
 	}
-	registerEditorExtension(extension: Extension): void {
-		throw new Error("Method not implemented.");
-	}
+
 	registerObsidianProtocolHandler(action: string, handler: ObsidianProtocolHandler): void {
 		throw new Error("Method not implemented.");
 	}
@@ -71,10 +66,11 @@ export class PluginMock implements Plugin {
 		throw new Error("Method not implemented.");
 	}
 	loadData(): Promise<any> {
-		throw new Error("Method not implemented.");
+		return Promise.resolve(this.data);
 	}
 	saveData(data: any): Promise<void> {
-		throw new Error("Method not implemented.");
+		this.data = data;
+		return Promise.resolve();
 	}
 	load(): void {
 		throw new Error("Method not implemented.");
@@ -119,9 +115,6 @@ export class PluginMock implements Plugin {
 		options?: boolean | AddEventListenerOptions | undefined,
 	): void;
 	registerDomEvent(el: unknown, type: unknown, callback: unknown, options?: unknown): void {
-		throw new Error("Method not implemented.");
-	}
-	registerInterval(id: number): number {
 		throw new Error("Method not implemented.");
 	}
 }
