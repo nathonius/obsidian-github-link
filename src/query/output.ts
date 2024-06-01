@@ -3,9 +3,11 @@ import { getProp, titleCase } from "src/util";
 import type { BaseParams } from "./params";
 import { DEFAULT_COLUMNS } from "./column/defaults";
 import { IssueColumns } from "./column/issue";
+import { PluginSettings } from "src/plugin";
 import { PullRequestColumns } from "./column/pull-request";
 import { QueryType } from "./params";
 import { RepoColumns } from "./column/repo";
+import type { TableResult } from "./processor";
 import { setIcon } from "obsidian";
 
 const ALL_COLUMNS = {
@@ -14,9 +16,9 @@ const ALL_COLUMNS = {
 	[QueryType.Repo]: RepoColumns,
 };
 
-export function renderTable<T extends { items: unknown[] } | unknown[]>(
+export function renderTable(
 	params: BaseParams,
-	result: T,
+	result: TableResult,
 	el: HTMLElement,
 	renderFn: (element: HTMLElement, skipCache?: boolean) => Promise<void>,
 	externalLink?: string,
@@ -26,16 +28,24 @@ export function renderTable<T extends { items: unknown[] } | unknown[]>(
 	const tableScrollWrapper = tableWrapper.createDiv({ cls: "github-link-table-scroll-wrapper" });
 	const table = tableScrollWrapper.createEl("table", { cls: "github-link-table" });
 
+	// Create footer
+	const footer = tableWrapper.createDiv({ cls: "github-link-table-footer" });
+
+	// Add external link to footer if available
+	if (externalLink) {
+		footer.createEl("a", {
+			cls: "github-link-table-footer-external-link",
+			text: "View on GitHub",
+			href: externalLink,
+		});
+	}
+
+	// Add pagination to footer if enabled
+	if (PluginSettings.showPagination) {
+	}
+
 	if (params.refresh) {
-		const refresh = tableWrapper.createDiv({ cls: "github-link-table-refresh" });
-		if (externalLink) {
-			refresh.createEl("a", {
-				cls: "github-link-table-refresh-external-link",
-				text: "View on GitHub",
-				href: externalLink,
-			});
-		}
-		const refreshButton = refresh.createEl("button", {
+		const refreshButton = footer.createEl("button", {
 			cls: "clickable-icon",
 			attr: { "aria-label": "Refresh Results" },
 		});
@@ -79,3 +89,5 @@ export function renderTable<T extends { items: unknown[] } | unknown[]>(
 		}
 	}
 }
+
+function renderPagination(parent: HTMLDivElement, getPage: (page: number) => void): HTMLDivElement {}

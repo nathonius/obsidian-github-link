@@ -18,6 +18,7 @@ export interface GithubLinkPluginSettings {
 	accounts: GithubAccount[];
 	defaultAccount?: string;
 	defaultPageSize: number;
+	showPagination: boolean;
 	logLevel: LogLevel;
 	tagTooltips: boolean;
 	tagShowPRMergeable: boolean;
@@ -29,6 +30,7 @@ export interface GithubLinkPluginSettings {
 export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
 	accounts: [],
 	defaultPageSize: 10,
+	showPagination: false,
 	logLevel: LogLevel.Error,
 	tagTooltips: false,
 	tagShowPRMergeable: false,

@@ -3,7 +3,21 @@ import type { TableParams, TableQueryParams } from "./params";
 import { QueryType, isTableParams, isTableQueryParams, processParams } from "./params";
 import { renderTable } from "./output";
 import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "src/github/github";
-import type { IssueListParams, IssueSearchParams, PullListParams } from "src/github/response";
+import type {
+	IssueListParams,
+	IssueListResponse,
+	IssueSearchParams,
+	IssueSearchResponse,
+	PullListParams,
+	PullListResponse,
+} from "src/github/response";
+
+export type TableResult = IssueSearchResponse["items"] | IssueListResponse | PullListResponse;
+let a!: IssueSearchResponse;
+let b!: IssueListResponse;
+let c!: PullListResponse;
+
+a.items;
 
 export async function QueryProcessor(
 	source: string,
@@ -19,7 +33,7 @@ export async function QueryProcessor(
 	}
 
 	const renderFn = async (element: HTMLElement, skipCache = false) => {
-		let response: { items: unknown[] } | unknown[] | undefined = undefined;
+		let response: TableResult | undefined = undefined;
 		let externalLink: string | undefined;
 		if (isTableQueryParams(params)) {
 			if (params.queryType === QueryType.Issue || params.queryType === QueryType.PullRequest) {

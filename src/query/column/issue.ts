@@ -5,7 +5,9 @@ import { titleCase } from "src/util";
 import { createTag } from "src/inline/inline";
 import { getPRForIssue } from "src/github/github";
 
-export const IssueColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
+export const IssueColumns: ColumnsMap<
+	Pick<IssueSearchResponse["items"][number], "state" | "closed_at" | "state_reason" | "timeline_url">
+> = {
 	...CommonIssuePRColumns,
 	status: {
 		header: "Status",

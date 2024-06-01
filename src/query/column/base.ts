@@ -1,12 +1,13 @@
-import type { IssueSearchResponse } from "src/github/response";
 import { parseUrl, repoAPIToBrowserUrl } from "src/github/url-parse";
+
 import { DateFormat } from "src/util";
+import type { TableResult } from "../processor";
 
 export interface ColumnGetter<T> {
 	header: string;
 	cell: (row: T, el: HTMLTableCellElement) => void | Promise<void>;
 }
-export type ColumnsMap<T> = Record<string, ColumnGetter<T>>;
+export type ColumnsMap = Record<string, ColumnGetter<unknown>>;
 
 export function DateCell(value: string | undefined | null, el: HTMLTableCellElement) {
 	el.classList.add("github-link-table-date");
@@ -27,10 +28,10 @@ export function DateCell(value: string | undefined | null, el: HTMLTableCellElem
 /**
  * Issue and PR columns share types, so some columns are shared
  */
-export const CommonIssuePRColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
+export const CommonIssuePRColumns: ColumnsMap = {
 	number: {
 		header: "Number",
-		cell: (row, el) => {
+		cell: (row: Pick<TableResult>, el) => {
 			el.classList.add("github-link-table-issue-number");
 			el.createEl("a", { text: `#${row.number}`, href: row.html_url });
 		},

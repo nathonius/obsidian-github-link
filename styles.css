@@ -281,21 +281,17 @@ body.theme-dark {
 	white-space: nowrap;
 }
 
-.github-link-table-refresh {
+.github-link-table-footer {
 	display: flex;
-	justify-content: flex-end;
+	justify-content: space-between;
 	align-items: center;
 }
 
-.github-link-table-refresh:has(a) {
-	justify-content: space-between;
-}
-
-.github-link-table-refresh-external-link {
+.github-link-table-footer-external-link {
 	font-size: 0.75rem;
 }
 
-.github-link-table-refresh > button > svg {
+.github-link-table-footer > button > svg {
 	width: var(--icon-s);
 	height: var(--icon-s);
 	stroke-width: var(--icon-s-stroke-width);

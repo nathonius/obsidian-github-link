@@ -52,7 +52,9 @@ export type PullListParams = PaginationParams & {
 };
 export type IssueSearchParams = RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["parameters"];
 
-export function getSearchResultIssueStatus(issue: IssueSearchResponse["items"][number]): IssueStatus {
+export function getSearchResultIssueStatus(
+	issue: Pick<IssueSearchResponse["items"][number], "state" | "state_reason" | "pull_request" | "closed_at">,
+): IssueStatus {
 	if (issue.pull_request?.merged_at || issue.state_reason === "completed") {
 		return IssueStatus.Done;
 	} else if (issue.closed_at || issue.state === "closed") {

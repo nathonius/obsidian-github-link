@@ -3,7 +3,7 @@ import { CommonIssuePRColumns, type ColumnsMap } from "./base";
 import { setPRIcon } from "src/icon";
 import { titleCase } from "src/util";
 
-export const PullRequestColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
+export const PullRequestColumns: ColumnsMap<Pick<IssueSearchResponse["items"][number], "state" | "closed_at">> = {
 	...CommonIssuePRColumns,
 	status: {
 		header: "Status",
