@@ -33,6 +33,7 @@ export function renderTable<T extends { items: unknown[] } | unknown[]>(
 				cls: "github-link-table-refresh-external-link",
 				text: "View on GitHub",
 				href: externalLink,
+				attr: { target: "_blank" },
 			});
 		}
 		const refreshButton = refresh.createEl("button", {

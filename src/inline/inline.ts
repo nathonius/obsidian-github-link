@@ -1,13 +1,13 @@
-import type { PullResponse } from "src/github/response";
 import { IssueStatus, getIssueStatus, getPRStatus } from "src/github/response";
 import { getIssue, getPullRequest } from "../github/github";
+import { setIssueIcon, setPRIcon, setPRMergeableIcon } from "src/icon";
 
 import type { ParsedUrl } from "../github/url-parse";
+import { PluginSettings } from "src/plugin";
+import type { PullResponse } from "src/github/response";
+import { RequestError } from "src/util";
 import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
-import { setIssueIcon, setPRIcon, setPRMergeableIcon } from "src/icon";
-import { PluginSettings } from "src/plugin";
-import { RequestError } from "src/util";
 
 interface TagConfig {
 	icon: HTMLSpanElement;
@@ -16,7 +16,7 @@ interface TagConfig {
 
 export function createTag(href: string): HTMLAnchorElement {
 	const parsedUrl = parseUrl(href);
-	const container = createEl("a", { cls: "github-link-inline", href });
+	const container = createEl("a", { cls: "github-link-inline", href, attr: { target: "_blank" } });
 	const config: TagConfig = {
 		icon: createSpan({ cls: ["github-link-status-icon", "github-link-inline-icon"] }),
 		sections: [],
