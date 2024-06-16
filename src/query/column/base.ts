@@ -1,6 +1,7 @@
-import type { IssueSearchResponse } from "src/github/response";
 import { parseUrl, repoAPIToBrowserUrl } from "src/github/url-parse";
+
 import { DateFormat } from "src/util";
+import type { IssueSearchResponse } from "src/github/response";
 
 export interface ColumnGetter<T> {
 	header: string;
@@ -32,7 +33,7 @@ export const CommonIssuePRColumns: ColumnsMap<IssueSearchResponse["items"][numbe
 		header: "Number",
 		cell: (row, el) => {
 			el.classList.add("github-link-table-issue-number");
-			el.createEl("a", { text: `#${row.number}`, href: row.html_url });
+			el.createEl("a", { text: `#${row.number}`, href: row.html_url, attr: { target: "_blank" } });
 		},
 	},
 	repo: {
@@ -41,13 +42,17 @@ export const CommonIssuePRColumns: ColumnsMap<IssueSearchResponse["items"][numbe
 			el.classList.add("github-link-table-repo");
 			const url = repoAPIToBrowserUrl(row.repository_url);
 			const parsed = parseUrl(url);
-			el.createEl("a", { text: parsed.repo, href: url });
+			el.createEl("a", { text: parsed.repo, href: url, attr: { target: "_blank" } });
 		},
 	},
 	author: {
 		header: "Author",
 		cell: (row, el) => {
-			const anchor = el.createEl("a", { cls: "github-link-table-author" });
+			const anchor = el.createEl("a", {
+				cls: "github-link-table-author",
+				href: row.user?.html_url,
+				attr: { target: "_blank" },
+			});
 			if (row.user?.avatar_url) {
 				anchor.createEl("img", { cls: "github-link-table-avatar", attr: { src: row.user.avatar_url } });
 			}
