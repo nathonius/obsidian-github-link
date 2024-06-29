@@ -1,4 +1,6 @@
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
+import { logger } from "../plugin";
+import { isSuccessResponse, sanitizeObject } from "../util";
 import type {
 	IssueListParams,
 	IssueListResponse,
@@ -9,8 +11,6 @@ import type {
 	PullResponse,
 	RepoSearchResponse,
 } from "./response";
-import { logger } from "src/plugin";
-import { isSuccessResponse, sanitizeObject } from "src/util";
 
 interface CacheParams {
 	request: RequestUrlParam;

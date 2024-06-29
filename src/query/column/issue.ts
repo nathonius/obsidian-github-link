@@ -1,10 +1,10 @@
-import type { IssueListResponse, IssueSearchResponse } from "src/github/response";
-import { getSearchResultIssueStatus } from "src/github/response";
+import type { IssueListResponse, IssueSearchResponse } from "../../github/response";
+import { getSearchResultIssueStatus } from "../../github/response";
+import { setIssueIcon } from "../../icon";
+import { titleCase } from "../../util";
+import { createTag } from "../../inline/inline";
+import { getPRForIssue } from "../../github/github";
 import { CommonIssuePRColumns, type ColumnsMap } from "./base";
-import { setIssueIcon } from "src/icon";
-import { titleCase } from "src/util";
-import { createTag } from "src/inline/inline";
-import { getPRForIssue } from "src/github/github";
 
 export const IssueColumns: ColumnsMap = {
 	...CommonIssuePRColumns,

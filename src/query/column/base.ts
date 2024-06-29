@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { parseUrl, repoAPIToBrowserUrl } from "src/github/url-parse";
+import { parseUrl, repoAPIToBrowserUrl } from "../../github/url-parse";
 
-import { DateFormat } from "src/util";
+import { DateFormat } from "../../util";
+import type { IssueListResponse } from "../../github/response";
 import type { TableResult } from "../query";
-import type { IssueListResponse } from "src/github/response";
 
 export interface ColumnGetter<T> {
 	header: string;

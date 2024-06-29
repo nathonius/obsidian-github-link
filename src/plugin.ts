@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Plugin } from "obsidian";
 import { DEFAULT_SETTINGS, GithubLinkPluginSettingsTab } from "./settings";
 import { Logger } from "./logger";
 
 import type { GithubLinkPluginData, GithubLinkPluginSettings } from "./settings";
 import { InlineRenderer } from "./inline/inline";
-import { Plugin } from "obsidian";
 import { createInlineViewPlugin } from "./inline/view-plugin";
 import { RequestCache } from "./github/cache";
 import { QueryProcessor } from "./query/processor";

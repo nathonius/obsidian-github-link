@@ -1,3 +1,10 @@
+import { RequestError, mapObject } from "../util";
+
+import type { GithubAccount } from "../settings";
+import { PluginSettings } from "../plugin";
+import { issueListSortFromQuery, pullListSortFromQuery, searchSortFromQuery, type QueryParams } from "../query/query";
+import { OldCache } from "./cache";
+import { GitHubApi } from "./api";
 import type {
 	CheckRunListResponse,
 	IssueListParams,
@@ -12,13 +19,6 @@ import type {
 	PullResponse,
 	TimelineCrossReferencedEvent,
 } from "./response";
-import { RequestError, mapObject } from "src/util";
-import { GitHubApi } from "./api";
-
-import { OldCache } from "./cache";
-import type { GithubAccount } from "src/settings";
-import { PluginSettings } from "src/plugin";
-import { issueListSortFromQuery, pullListSortFromQuery, searchSortFromQuery, type QueryParams } from "src/query/query";
 
 const cache = new OldCache();
 const tokenMatchRegex = /repo:(.+)\//;

@@ -1,3 +1,9 @@
+import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
+
+import { Notice, requestUrl } from "obsidian";
+import Queue from "queue";
+import { PluginSettings, getCache, logger } from "../plugin";
+import { RequestError, isSuccessResponse, promiseWithResolvers } from "../util";
 import type {
 	CheckRunListResponse,
 	CodeResponse,
@@ -13,12 +19,6 @@ import type {
 	PullListResponse,
 	PullResponse,
 } from "./response";
-import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
-
-import { RequestError, isSuccessResponse, promiseWithResolvers } from "src/util";
-import { Notice, requestUrl } from "obsidian";
-import { PluginSettings, getCache, logger } from "src/plugin";
-import Queue from "queue";
 import type { CacheEntry } from "./cache";
 
 type RequestConfig = RequestUrlParam & { headers: Record<string, string> };

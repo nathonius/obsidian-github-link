@@ -1,7 +1,7 @@
-import { getSearchResultIssueStatus, IssueStatus } from "src/github/response";
+import { getSearchResultIssueStatus, IssueStatus } from "../../github/response";
+import { setPRIcon } from "../../icon";
+import { titleCase } from "../../util";
 import { CommonIssuePRColumns, type ColumnsMap } from "./base";
-import { setPRIcon } from "src/icon";
-import { titleCase } from "src/util";
 
 export const PullRequestColumns: ColumnsMap = {
 	...CommonIssuePRColumns,

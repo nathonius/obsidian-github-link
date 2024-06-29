@@ -1,5 +1,5 @@
-import { setIcon } from "obsidian";
-import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "src/github/github";
+import { parseYaml, setIcon } from "obsidian";
+import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "../github/github";
 import type {
 	IssueListParams,
 	IssueListResponse,
@@ -9,11 +9,10 @@ import type {
 	PaginationMeta,
 	PullListParams,
 	PullListResponse,
-} from "src/github/response";
-import { parseYaml } from "obsidian";
-import { PluginSettings, logger } from "src/plugin";
+} from "../github/response";
+import { PluginSettings, logger } from "../plugin";
+import { getProp, isEqual, titleCase } from "../util";
 import { ALL_COLUMNS, DEFAULT_COLUMNS } from "./column/defaults";
-import { getProp, isEqual, titleCase } from "src/util";
 
 export type TableResult = IssueSearchResponse["items"] | IssueListResponse | PullListResponse;
 

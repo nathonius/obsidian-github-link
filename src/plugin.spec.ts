@@ -1,10 +1,10 @@
-import { expect, jest, test } from "@jest/globals";
-import { GithubLinkPlugin, PluginData, PluginSettings, getCache } from "./plugin";
 import { beforeEach, describe } from "node:test";
+import { expect, jest, test } from "@jest/globals";
 import type { Plugin, RequestUrlResponse } from "obsidian";
 import { App } from "obsidian";
+import type { PluginMock } from "../__mocks__/obsidian/Plugin";
 import * as manifest from "../manifest.json";
-import type { PluginMock } from "__mocks__/obsidian/Plugin";
+import { GithubLinkPlugin, PluginData, PluginSettings, getCache } from "./plugin";
 import type { GithubLinkPluginSettings } from "./settings";
 import { DEFAULT_SETTINGS } from "./settings";
 import { CacheEntry, RequestCache } from "./github/cache";
