@@ -13,6 +13,24 @@ export interface PaginationParams {
 	page?: number;
 }
 
+export interface LinkMeta {
+	url: string;
+	page: number;
+	per_page: number;
+}
+
+export interface PaginationMeta {
+	first?: LinkMeta;
+	prev?: LinkMeta;
+	next?: LinkMeta;
+	last?: LinkMeta;
+}
+
+export interface MaybePaginated<T> {
+	meta: PaginationMeta;
+	response: T;
+}
+
 // Response Types
 export type IssueResponse = RestEndpointMethodTypes["issues"]["get"]["response"]["data"];
 export type IssueListResponse = RestEndpointMethodTypes["issues"]["list"]["response"]["data"];

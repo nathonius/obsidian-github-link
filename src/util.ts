@@ -1,6 +1,15 @@
+import { isEqual as lodashIsEqual } from "lodash";
+
 export type RemoveIndexSignature<T> = {
 	[K in keyof T as string extends K ? never : number extends K ? never : symbol extends K ? never : K]: T[K];
 };
+
+/**
+ * Small wrapper around lodash isEqual to tell typescript to stop complaining about its any types
+ */
+export function isEqual<T, R>(value: T, other: R): boolean {
+	return lodashIsEqual(value, other);
+}
 
 export function titleCase(value: string): string {
 	const words = value.split(/[-_]/);
@@ -15,6 +24,55 @@ export function assertDefined<T>(value: T | undefined | null): asserts value is 
 	if (value === undefined || value === null) {
 		throw new Error(`Expected value to be defined!`);
 	}
+}
+
+type SourceToTargetFunction<T, R, K extends keyof R> = (value: T) => R[K];
+type SourceToTarget<T, R, K extends keyof R> = K extends keyof T
+	? T[K] extends R[K]
+		? true | SourceToTargetFunction<T, R, K>
+		: SourceToTargetFunction<T, R, K>
+	: SourceToTargetFunction<T, R, K>;
+type ObjectMapConfig<T, R> = { [K in keyof R]: SourceToTarget<T, R, K> };
+
+/**
+ * Create an object of type R from source object of type T
+ * @param config An object describing how to map the values from the source to the new object.
+ *                Using true for a key passes the value from the source object as-is (if possible),
+ *                while a function will be called to transform the property. Config must include
+ *                every non-optional key on the target object type.
+ */
+export function mapObject<T, R>(
+	value: T,
+	config: ObjectMapConfig<T, R>,
+	removeUndefined = false,
+	removeNull = false,
+): R {
+	const resultEntries: [string, unknown][] = [];
+
+	for (const entry of Object.entries(config)) {
+		const key = entry[0];
+		const configSet = entry[1] as SourceToTarget<T, R, keyof R>;
+
+		if (configSet === true) {
+			resultEntries.push([key, value[key as keyof T]]);
+		} else {
+			resultEntries.push([key, configSet(value)]);
+		}
+	}
+
+	let finalEntries: [string, unknown][] = [];
+	if (removeUndefined || removeNull) {
+		for (const [key, value] of resultEntries) {
+			if ((removeUndefined && value === undefined) || (removeNull && value === null)) {
+				continue;
+			}
+			finalEntries.push([key, value]);
+		}
+	} else {
+		finalEntries = [...resultEntries];
+	}
+
+	return Object.fromEntries(finalEntries) as R;
 }
 
 export function sanitizeObject<T>(params: T, usableFieldMap: Record<keyof T, boolean>): T {
@@ -57,6 +115,7 @@ export function safeJSONParse<T>(value: string, props: Record<keyof T, boolean>)
 	// Handle parsing with try / catch
 	let parsed: T;
 	try {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		parsed = JSON.parse(value);
 	} catch (err) {
 		return null;
@@ -68,6 +127,7 @@ export function safeJSONParse<T>(value: string, props: Record<keyof T, boolean>)
 	for (const [_prop, include] of Object.entries(props)) {
 		const prop = _prop as keyof T;
 		if (include && parsed[prop]) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			result[prop] = parsed[prop];
 		}
 	}
@@ -128,9 +188,9 @@ export class RequestError implements Error {
 		this.message = originalError.message;
 
 		// Request props
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		this.headers = (originalError as any).headers;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		this.status = (originalError as any).status;
 	}
 }

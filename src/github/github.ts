@@ -6,18 +6,19 @@ import type {
 	IssueSearchParams,
 	IssueSearchResponse,
 	IssueTimelineResponse,
+	MaybePaginated,
 	PullListParams,
 	PullListResponse,
 	PullResponse,
 	TimelineCrossReferencedEvent,
 } from "./response";
-import type { RemoveIndexSignature } from "src/util";
-import { RequestError, sanitizeObject } from "src/util";
+import { RequestError, mapObject } from "src/util";
 import { GitHubApi } from "./api";
 
 import { OldCache } from "./cache";
 import type { GithubAccount } from "src/settings";
 import { PluginSettings } from "src/plugin";
+import { issueListSortFromQuery, pullListSortFromQuery, searchSortFromQuery, type QueryParams } from "src/query/query";
 
 const cache = new OldCache();
 const tokenMatchRegex = /repo:(.+)\//;
@@ -49,88 +50,105 @@ export function getIssue(org: string, repo: string, issue: number): Promise<Issu
 	return api.getIssue(org, repo, issue, getToken(org));
 }
 
-export function getMyIssues(params: IssueListParams, org?: string, skipCache = false): Promise<IssueListResponse> {
+// TODO: Cache this response
+export function getMyIssues(
+	params: QueryParams,
+	org?: string,
+	skipCache = false,
+): Promise<MaybePaginated<IssueListResponse>> {
 	const account = getAccount(org);
 	if (!account?.token) {
-		return Promise.resolve([]);
+		return Promise.resolve({ meta: {}, response: [] });
 	}
-	const _params = sanitizeObject(params, {
-		assignee: false,
-		creator: false,
-		direction: true,
-		labels: true,
-		mentioned: false,
-		milestone: false,
-		page: true,
-		per_page: true,
-		since: true,
-		sort: true,
-		state: true,
-		filter: true,
-		org: false,
-		repo: false,
-	});
+	const listParams = mapObject<QueryParams, IssueListParams>(
+		params,
+		{
+			assignee: true,
+			creator: true,
+			direction: true,
+			labels: (params) => {
+				if (Array.isArray(params.labels)) {
+					return params.labels.join(",");
+				}
+				return params.labels;
+			},
+			mentioned: true,
+			page: true,
+			per_page: true,
+			since: true,
+			sort: (params) => issueListSortFromQuery(params),
+			state: true,
+		},
+		true,
+		true,
+	);
 
-	setPageSize(_params);
+	setPageSize(listParams);
 
-	if (Array.isArray(_params.labels)) {
-		_params.labels = _params.labels.join(",");
-	}
-
-	return api.listIssuesForToken(_params, account.token);
+	return api.listIssuesForToken(listParams, account.token);
 }
 
+// TODO: Cache this response
 export function getIssuesForRepo(
-	params: IssueListParams,
+	params: QueryParams,
 	org: string,
 	repo: string,
 	skipCache = false,
-): Promise<IssueListResponse> {
-	const _params = sanitizeObject(params, {
-		assignee: true,
-		creator: true,
-		direction: true,
-		labels: true,
-		mentioned: true,
-		milestone: true,
-		page: true,
-		per_page: true,
-		since: true,
-		sort: true,
-		state: true,
-		org: false,
-		repo: false,
-		filter: false,
-	});
+): Promise<MaybePaginated<IssueListResponse>> {
+	const listParams = mapObject<QueryParams, IssueListParams>(
+		params,
+		{
+			assignee: true,
+			creator: true,
+			direction: true,
+			labels: (params) => {
+				if (Array.isArray(params.labels)) {
+					return params.labels.join(",");
+				}
+				return params.labels;
+			},
+			mentioned: true,
+			page: true,
+			per_page: true,
+			since: true,
+			sort: (params) => issueListSortFromQuery(params),
+			state: true,
+		},
+		true,
+		true,
+	);
 
-	setPageSize(_params);
+	setPageSize(listParams);
 
-	if (Array.isArray(_params.labels)) {
-		_params.labels = _params.labels.join(",");
-	}
-
-	return api.listIssuesForRepo(org, repo, _params, getToken(org));
+	return api.listIssuesForRepo(org, repo, listParams, getToken(org));
 }
 
 export function getPullRequest(org: string, repo: string, pullRequest: number): Promise<PullResponse> {
 	return api.getPullRequest(org, repo, pullRequest, getToken(org));
 }
 
-export function getPullRequestsForRepo(params: PullListParams, org: string, repo: string): Promise<PullListResponse> {
-	const _params = sanitizeObject(params, {
-		org: false,
-		repo: false,
-		base: true,
-		direction: true,
-		head: true,
-		page: true,
-		per_page: true,
-		sort: true,
-		state: true,
-	});
+// TODO: Cache this response
+export function getPullRequestsForRepo(
+	params: QueryParams,
+	org: string,
+	repo: string,
+	skipCache = false,
+): Promise<MaybePaginated<PullListResponse>> {
+	const listParams = mapObject<QueryParams, PullListParams>(
+		params,
+		{
+			direction: true,
+			page: true,
+			per_page: true,
+			sort: (params) => pullListSortFromQuery(params),
+			state: true,
+		},
+		true,
+		true,
+	);
 
-	setPageSize(_params);
-	return api.listPullRequestsForRepo(org, repo, _params, getToken(org));
+	setPageSize(listParams);
+	return api.listPullRequestsForRepo(org, repo, listParams, getToken(org));
 }
 
 export function listCheckRunsForRef(org: string, repo: string, ref: string): Promise<CheckRunListResponse> {
@@ -138,40 +156,41 @@ export function listCheckRunsForRef(org: string, repo: string, ref: string): Pro
 }
 
 export async function searchIssues(
-	params: RemoveIndexSignature<IssueSearchParams>,
+	params: QueryParams,
 	query: string,
 	org?: string,
 	skipCache = false,
-): Promise<IssueSearchResponse> {
-	const _params = sanitizeObject(params, {
-		q: false,
-		baseUrl: false,
-		headers: false,
-		mediaType: false,
-		order: true,
-		page: true,
-		per_page: true,
-		request: false,
-		sort: true,
-	});
+): Promise<MaybePaginated<IssueSearchResponse>> {
+	const searchParams = mapObject<QueryParams, IssueSearchParams>(
+		params,
+		{
+			q: () => query,
+			sort: (params) => searchSortFromQuery(params),
+			order: (params) => params.order,
+			page: (params) => params.page,
+			per_page: (params) => params.per_page,
+		},
+		true,
+		true,
+	);
 
-	setPageSize(_params);
-	_params.q = query;
+	setPageSize(searchParams);
 
 	const cachedResponse = cache.getIssueQuery(query);
 	if (cachedResponse && !skipCache) {
-		return Promise.resolve(cachedResponse);
+		return Promise.resolve({ meta: {}, response: cachedResponse });
 	}
 
-	const response = await api.searchIssues(_params, getToken(org, query));
-	cache.setIssueQuery(query, response);
-	return response;
+	const result = await api.searchIssues(searchParams, getToken(org, query));
+	cache.setIssueQuery(query, result.response);
+	return result;
 }
 
 export async function getPRForIssue(timelineUrl: string, org?: string): Promise<string | null> {
-	let response: IssueTimelineResponse | null = null;
+	let result: IssueTimelineResponse | null = null;
 	try {
-		response = (await api.queueRequest({ url: timelineUrl }, getToken(org))).json;
+		const { response } = await api.queueRequest({ url: timelineUrl }, getToken(org));
+		result = response.json as IssueTimelineResponse;
 	} catch (err) {
 		// 404 means there's no timeline for this, we can ignore the error
 		if (err instanceof RequestError && err.status === 404) {
@@ -180,12 +199,12 @@ export async function getPRForIssue(timelineUrl: string, org?: string): Promise<
 			throw err;
 		}
 	}
-	if (!response) {
+	if (!result) {
 		return null;
 	}
 
 	// TODO: Figure out a better/more reliable way to do this.
-	const crossRefEvent = response.find((_evt) => {
+	const crossRefEvent = result.find((_evt) => {
 		const evt = _evt as Partial<TimelineCrossReferencedEvent>;
 		return evt.event === "cross-referenced" && evt.source?.issue?.pull_request?.html_url;
 	}) as TimelineCrossReferencedEvent | undefined;

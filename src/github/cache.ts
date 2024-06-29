@@ -10,7 +10,7 @@ import type {
 	RepoSearchResponse,
 } from "./response";
 import { logger } from "src/plugin";
-import { isSuccessResponse } from "src/util";
+import { isSuccessResponse, sanitizeObject } from "src/util";
 
 interface CacheParams {
 	request: RequestUrlParam;
@@ -84,7 +84,12 @@ export class RequestCache {
 	}
 
 	public get(request: RequestUrlParam): CacheEntry | null {
-		return this.entries[this.getCacheKey(request)] ?? null;
+		const entry: CacheEntry | null = this.entries[this.getCacheKey(request)] ?? null;
+		// Ensure headers are defined; some old cache entries might not have them
+		if (entry && !entry.response.headers) {
+			entry.response.headers = {};
+		}
+		return entry;
 	}
 
 	public set(request: RequestUrlParam, response: RequestUrlResponse): void {
@@ -99,7 +104,11 @@ export class RequestCache {
 
 		// Slim down the data we store
 		const _request: Partial<RequestUrlParam> = { url: request.url, body: request.body };
-		const _response: Partial<RequestUrlResponse> = { json: response.json, status: response.status };
+		const _response: Partial<RequestUrlResponse> = {
+			json: response.json,
+			status: response.status,
+			headers: sanitizeObject(response.headers, { link: true }),
+		};
 
 		const entry = new CacheEntry(
 			_request as RequestUrlParam,

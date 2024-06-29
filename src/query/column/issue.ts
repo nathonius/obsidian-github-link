@@ -1,13 +1,12 @@
-import { getSearchResultIssueStatus, type IssueSearchResponse } from "src/github/response";
+import type { IssueListResponse, IssueSearchResponse } from "src/github/response";
+import { getSearchResultIssueStatus } from "src/github/response";
 import { CommonIssuePRColumns, type ColumnsMap } from "./base";
 import { setIssueIcon } from "src/icon";
 import { titleCase } from "src/util";
 import { createTag } from "src/inline/inline";
 import { getPRForIssue } from "src/github/github";
 
-export const IssueColumns: ColumnsMap<
-	Pick<IssueSearchResponse["items"][number], "state" | "closed_at" | "state_reason" | "timeline_url">
-> = {
+export const IssueColumns: ColumnsMap = {
 	...CommonIssuePRColumns,
 	status: {
 		header: "Status",
@@ -16,12 +15,18 @@ export const IssueColumns: ColumnsMap<
 			const status = getSearchResultIssueStatus(row);
 			const icon = wrapper.createSpan({ cls: "github-link-status-icon" });
 			setIssueIcon(icon, status);
-			wrapper.createSpan({ text: row.state_reason === "not_planned" ? "Not Planned" : titleCase(status) });
+			wrapper.createSpan({
+				text:
+					(row as IssueSearchResponse["items"][number]).state_reason === "not_planned"
+						? "Not Planned"
+						: titleCase(status),
+			});
 		},
 	},
 	pr: {
 		header: "PR",
-		cell: async (row, el) => {
+		cell: async (_row, el) => {
+			const row = _row as IssueListResponse[number];
 			// TODO: Figure out how to include org here for private repos
 			if (!row.timeline_url) {
 				return;

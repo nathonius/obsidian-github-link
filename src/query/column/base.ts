@@ -1,13 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { parseUrl, repoAPIToBrowserUrl } from "src/github/url-parse";
 
 import { DateFormat } from "src/util";
-import type { TableResult } from "../processor";
+import type { TableResult } from "../query";
+import type { IssueListResponse } from "src/github/response";
 
 export interface ColumnGetter<T> {
 	header: string;
 	cell: (row: T, el: HTMLTableCellElement) => void | Promise<void>;
 }
-export type ColumnsMap = Record<string, ColumnGetter<unknown>>;
+export type ColumnsMap = Record<string, ColumnGetter<TableResult[number]>>;
 
 export function DateCell(value: string | undefined | null, el: HTMLTableCellElement) {
 	el.classList.add("github-link-table-date");
@@ -31,7 +34,7 @@ export function DateCell(value: string | undefined | null, el: HTMLTableCellElem
 export const CommonIssuePRColumns: ColumnsMap = {
 	number: {
 		header: "Number",
-		cell: (row: Pick<TableResult>, el) => {
+		cell: (row, el) => {
 			el.classList.add("github-link-table-issue-number");
 			el.createEl("a", { text: `#${row.number}`, href: row.html_url });
 		},
@@ -40,7 +43,7 @@ export const CommonIssuePRColumns: ColumnsMap = {
 		header: "Repo",
 		cell: (row, el) => {
 			el.classList.add("github-link-table-repo");
-			const url = repoAPIToBrowserUrl(row.repository_url);
+			const url = repoAPIToBrowserUrl((row as IssueListResponse[number]).repository_url);
 			const parsed = parseUrl(url);
 			el.createEl("a", { text: parsed.repo, href: url });
 		},

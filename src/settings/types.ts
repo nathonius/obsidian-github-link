@@ -30,7 +30,7 @@ export interface GithubLinkPluginSettings {
 export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
 	accounts: [],
 	defaultPageSize: 10,
-	showPagination: false,
+	showPagination: true,
 	logLevel: LogLevel.Error,
 	tagTooltips: false,
 	tagShowPRMergeable: false,
