@@ -234,6 +234,7 @@ export class GithubQuery {
 				cls: "github-link-table-footer-external-link",
 				text: "View on GitHub",
 				href: externalLink,
+				attr: { target: "_blank" },
 			});
 		}
 
