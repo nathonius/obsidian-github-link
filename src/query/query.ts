@@ -142,15 +142,14 @@ export class GithubQuery {
 	private result: TableResult | null = null;
 	private resultMeta: PaginationMeta | null = null;
 
-	constructor(
-		source: string,
-		private readonly hostElement: HTMLElement,
-	) {
+	constructor(private readonly hostElement: HTMLElement) {}
+
+	public async init(source: string): Promise<void> {
 		const parsedParams = this.parseCodeblock(source);
 		if (!parsedParams) {
 			console.error(`Github Link: simplistic parsing failed`);
 		} else {
-			void this.setParams(parsedParams);
+			await this.setParams(parsedParams);
 		}
 	}
 
