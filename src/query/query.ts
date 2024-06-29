@@ -244,7 +244,7 @@ export class GithubQuery {
 			const pagination = footer.createDiv({ cls: "github-link-table-pagination" });
 
 			// First, previous
-			if (meta?.first) {
+			if (meta?.first && (!meta.prev || meta.prev.page !== meta.first.page)) {
 				const first = pagination.createEl("a", { text: "<<", href: "#", attr: { role: "button" } });
 				first.addEventListener("click", () => {
 					void this.setParams({ ...this.params, page: meta.first?.page });
@@ -267,7 +267,7 @@ export class GithubQuery {
 					void this.setParams({ ...this.params, page: meta.next?.page });
 				});
 			}
-			if (meta?.last) {
+			if (meta?.last && (!meta.next || meta.next.page !== meta.last.page)) {
 				const last = pagination.createEl("a", { text: ">>", href: "#", attr: { role: "button" } });
 				last.addEventListener("click", () => {
 					void this.setParams({ ...this.params, page: meta.last?.page });
