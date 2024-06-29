@@ -287,6 +287,11 @@ body.theme-dark {
 	align-items: center;
 }
 
+.github-link-table-pagination {
+	display: flex;
+	gap: 2px;
+}
+
 .github-link-table-footer-external-link {
 	font-size: 0.75rem;
 }
