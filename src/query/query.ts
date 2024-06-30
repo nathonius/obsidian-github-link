@@ -1,5 +1,11 @@
 import { parseYaml, setIcon } from "obsidian";
-import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "../github/github";
+import {
+	searchIssues,
+	getIssuesForRepo,
+	getMyIssues,
+	getPullRequestsForRepo,
+	getIssuesForOrganization,
+} from "../github/github";
 import type { MaybePaginated, PaginationMeta } from "../github/response";
 import { PluginSettings } from "../plugin";
 import { getProp, isEqual, titleCase } from "../util";
@@ -66,6 +72,11 @@ export class GithubQuery {
 			// Issue query with org and repo provided
 			else if (params.queryType === QueryType.Issue && params.org && params.repo) {
 				return await getIssuesForRepo(params, params.org, params.repo, skipCache);
+			}
+			// Issue query with only org provided
+			else if (params.queryType === QueryType.Issue && params.org) {
+				// TODO: Handle error case here if provided org cannot be found
+				return await getIssuesForOrganization(params, params.org, skipCache);
 			}
 			// Issue query without org or repo provided
 			else if (params.queryType === QueryType.Issue) {

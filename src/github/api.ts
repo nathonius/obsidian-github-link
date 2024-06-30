@@ -124,6 +124,12 @@ export class GitHubApi {
 		return { meta, response: response.json as IssueListResponse };
 	}
 
+	public async listIssuesForOrganization(org: string, params: IssueListParams, token?: string, skipCache = false) {
+		const url = this.addParams(`${GitHubApi.baseApi}/orgs/${org}/issues`, params as Record<string, unknown>);
+		const { meta, response } = await this.queueRequest({ url }, token, skipCache);
+		return { meta, response: response.json as IssueListResponse };
+	}
+
 	public async getPullRequest(
 		org: string,
 		repo: string,
