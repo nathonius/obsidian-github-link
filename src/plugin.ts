@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 import { DEFAULT_SETTINGS, GithubLinkPluginSettingsTab } from "./settings";
 import { Logger } from "./logger";
 
@@ -9,9 +9,10 @@ import { InlineRenderer } from "./inline/inline";
 import { createInlineViewPlugin } from "./inline/view-plugin";
 import { RequestCache } from "./github/cache";
 import { QueryProcessor } from "./query/processor";
+import { DATA_VERSION } from "./settings/types";
 
 export const PluginSettings: GithubLinkPluginSettings = { ...DEFAULT_SETTINGS };
-export const PluginData: GithubLinkPluginData = { cache: null, settings: PluginSettings };
+export const PluginData: GithubLinkPluginData = { cache: null, settings: PluginSettings, dataVersion: DATA_VERSION };
 export const logger = new Logger();
 let cache: RequestCache;
 export function getCache(): RequestCache {
@@ -21,31 +22,7 @@ export function getCache(): RequestCache {
 export class GithubLinkPlugin extends Plugin {
 	public cacheInterval: number | undefined;
 	async onload() {
-		let data = (await this.loadData()) || {};
-
-		// Migrate settings from data root to settings -- remove in v1.0.0
-		if (data.accounts) {
-			const newSettings: GithubLinkPluginSettings = {
-				accounts: data.accounts ?? PluginSettings.accounts,
-				cacheIntervalSeconds: data.cacheIntervalSeconds ?? PluginSettings.cacheIntervalSeconds,
-				defaultPageSize: data.defaultPageSize ?? PluginSettings.defaultPageSize,
-				logLevel: data.logLevel ?? PluginSettings.logLevel,
-				maxCacheAgeHours: data.maxCacheAgeHours ?? PluginSettings.maxCacheAgeHours,
-				minRequestSeconds: data.minRequestSeconds ?? PluginSettings.minRequestSeconds,
-				tagShowPRMergeable: data.tagShowPRMergeable ?? PluginSettings.tagShowPRMergeable,
-				tagTooltips: data.tagTooltips ?? PluginSettings.tagTooltips,
-				defaultAccount: data.defaultAccount ?? PluginSettings.defaultAccount,
-				showPagination: data.showPagination ?? PluginSettings.showPagination,
-				showRefresh: data.showRefresh ?? PluginSettings.showRefresh,
-				showExternalLink: data.showExternalLink ?? PluginSettings.showExternalLink,
-			};
-			const newData: GithubLinkPluginData = {
-				cache: data.cache ?? PluginData.cache,
-				settings: newSettings,
-			};
-			await this.saveData(newData);
-			data = newData;
-		}
+		const data = (await this.loadData()) || {};
 
 		Object.assign(PluginSettings, data.settings);
 		Object.assign(PluginData, data);
@@ -53,12 +30,24 @@ export class GithubLinkPlugin extends Plugin {
 
 		cache = new RequestCache(PluginData.cache);
 
+		if (data.dataVersion === undefined || PluginData.dataVersion < DATA_VERSION) {
+			// Always clear cache when data version changes
+			const entriesDeleted = cache.clean(new Date());
+			PluginData.cache = null;
+			PluginData.dataVersion = DATA_VERSION;
+			await this.saveData(PluginData);
+			new Notice(
+				`GitHub link data schema migrated to version ${DATA_VERSION}. Removed ${entriesDeleted} stored items from GitHub Link cache.`,
+				3000,
+			);
+		}
+
 		// Clean cache
 		const maxAge = new Date(new Date().getTime() - PluginSettings.maxCacheAgeHours * 60 * 60 * 1000);
 		const entriesDeleted = cache.clean(maxAge);
 		if (entriesDeleted > 0) {
 			PluginData.cache = cache.toJSON();
-			await this.saveData(PluginSettings);
+			await this.saveData(PluginData);
 			logger.info(`Cleaned ${entriesDeleted} entries from request cache.`);
 		}
 

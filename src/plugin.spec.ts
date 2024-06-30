@@ -8,6 +8,7 @@ import type { GithubLinkPluginSettings } from "./settings";
 import { DEFAULT_SETTINGS } from "./settings";
 import { CacheEntry, RequestCache } from "./github/cache";
 import { LogLevel } from "./logger";
+import { DATA_VERSION } from "./settings/types";
 
 jest.mock("./settings/settings-tab");
 
@@ -51,6 +52,7 @@ describe("GithubLinkPlugin", () => {
 			expect(PluginData).toBeDefined();
 			expect(PluginData.cache).toEqual(null);
 			expect(PluginData.settings).toEqual(DEFAULT_SETTINGS);
+			expect(PluginData.dataVersion).toEqual(DATA_VERSION);
 		});
 
 		test("should load stored cache", async () => {
@@ -62,7 +64,7 @@ describe("GithubLinkPlugin", () => {
 				null,
 			);
 			plugin = new GithubLinkPlugin(app, manifest);
-			mockedPlugin(plugin).data = { cache: [cacheEntry.toJSON()] };
+			mockedPlugin(plugin).data = { cache: [cacheEntry.toJSON()], dataVersion: DATA_VERSION };
 			await plugin.onload();
 			expect(PluginData.cache).toEqual([cacheEntry.toJSON()]);
 			expect(getCache().get(cacheEntry.request)).toEqual(cacheEntry);

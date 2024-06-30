@@ -6,7 +6,7 @@ import type { GithubLinkPlugin } from "../plugin";
 import { LogLevel } from "../logger";
 import { PluginData, PluginSettings, getCache } from "../plugin";
 import type { GithubAccount, GithubLinkPluginData } from "./types";
-import { DEFAULT_SETTINGS } from "./types";
+import { DATA_VERSION, DEFAULT_SETTINGS } from "./types";
 import { AccountSettings } from "./account";
 
 export class GithubLinkPluginSettingsTab extends PluginSettingTab {
@@ -283,6 +283,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 		const newData: GithubLinkPluginData = {
 			cache: PluginData.cache,
 			settings: PluginSettings,
+			dataVersion: DATA_VERSION,
 		};
 		return this.plugin.saveData(newData);
 	}
