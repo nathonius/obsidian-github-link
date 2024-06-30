@@ -1,13 +1,16 @@
-import { parseUrl, repoAPIToBrowserUrl } from "src/github/url-parse";
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { parseUrl, repoAPIToBrowserUrl } from "../../github/url-parse";
 
-import { DateFormat } from "src/util";
-import type { IssueSearchResponse } from "src/github/response";
+import { DateFormat } from "../../util";
+import type { IssueListResponse } from "../../github/response";
+import type { TableResult } from "../types";
 
 export interface ColumnGetter<T> {
 	header: string;
 	cell: (row: T, el: HTMLTableCellElement) => void | Promise<void>;
 }
-export type ColumnsMap<T> = Record<string, ColumnGetter<T>>;
+export type ColumnsMap = Record<string, ColumnGetter<TableResult[number]>>;
 
 export function DateCell(value: string | undefined | null, el: HTMLTableCellElement) {
 	el.classList.add("github-link-table-date");
@@ -28,7 +31,7 @@ export function DateCell(value: string | undefined | null, el: HTMLTableCellElem
 /**
  * Issue and PR columns share types, so some columns are shared
  */
-export const CommonIssuePRColumns: ColumnsMap<IssueSearchResponse["items"][number]> = {
+export const CommonIssuePRColumns: ColumnsMap = {
 	number: {
 		header: "Number",
 		cell: (row, el) => {
@@ -40,7 +43,7 @@ export const CommonIssuePRColumns: ColumnsMap<IssueSearchResponse["items"][numbe
 		header: "Repo",
 		cell: (row, el) => {
 			el.classList.add("github-link-table-repo");
-			const url = repoAPIToBrowserUrl(row.repository_url);
+			const url = repoAPIToBrowserUrl((row as IssueListResponse[number]).repository_url);
 			const parsed = parseUrl(url);
 			el.createEl("a", { text: parsed.repo, href: url, attr: { target: "_blank" } });
 		},

@@ -20,11 +20,13 @@
 		"@codemirror/view": "^6.23.0",
 		"@eslint/js": "^9.1.1",
 		"@jest/globals": "^29.7.0",
+		"@types/lodash": "^4.17.5",
 		"@types/node": "^20.11.19",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.20.0",
 		"eslint": "^8.57.0",
 		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-import": "^2.29.1",
 		"eslint-plugin-jest": "^28.2.0",
 		"eslint-plugin-unused-imports": "^3.1.0",
 		"jest": "^29.7.0",
@@ -43,6 +45,7 @@
 		"@octokit/openapi-types": "^19.1.0",
 		"@octokit/plugin-rest-endpoint-methods": "^10.3.0",
 		"@octokit/request": "^8.2.0",
+		"lodash": "^4.17.21",
 		"queue": "^7.0.0"
 	}
 }

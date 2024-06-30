@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Plugin } from "obsidian";
 import { DEFAULT_SETTINGS, GithubLinkPluginSettingsTab } from "./settings";
 import { Logger } from "./logger";
 
 import type { GithubLinkPluginData, GithubLinkPluginSettings } from "./settings";
 import { InlineRenderer } from "./inline/inline";
-import { Plugin } from "obsidian";
-import { QueryProcessor } from "./query/processor";
 import { createInlineViewPlugin } from "./inline/view-plugin";
 import { RequestCache } from "./github/cache";
+import { QueryProcessor } from "./query/processor";
 
 export const PluginSettings: GithubLinkPluginSettings = { ...DEFAULT_SETTINGS };
 export const PluginData: GithubLinkPluginData = { cache: null, settings: PluginSettings };
@@ -33,6 +35,8 @@ export class GithubLinkPlugin extends Plugin {
 				tagShowPRMergeable: data.tagShowPRMergeable ?? PluginSettings.tagShowPRMergeable,
 				tagTooltips: data.tagTooltips ?? PluginSettings.tagTooltips,
 				defaultAccount: data.defaultAccount ?? PluginSettings.defaultAccount,
+				showPagination: data.showPagination ?? PluginSettings.showPagination,
+				showRefresh: data.showRefresh ?? PluginSettings.showRefresh,
 			};
 			const newData: GithubLinkPluginData = {
 				cache: data.cache ?? PluginData.cache,

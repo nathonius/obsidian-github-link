@@ -13,6 +13,24 @@ export interface PaginationParams {
 	page?: number;
 }
 
+export interface LinkMeta {
+	url: string;
+	page: number;
+	per_page: number;
+}
+
+export interface PaginationMeta {
+	first?: LinkMeta;
+	prev?: LinkMeta;
+	next?: LinkMeta;
+	last?: LinkMeta;
+}
+
+export interface MaybePaginated<T> {
+	meta: PaginationMeta;
+	response: T;
+}
+
 // Response Types
 export type IssueResponse = RestEndpointMethodTypes["issues"]["get"]["response"]["data"];
 export type IssueListResponse = RestEndpointMethodTypes["issues"]["list"]["response"]["data"];
@@ -52,7 +70,9 @@ export type PullListParams = PaginationParams & {
 };
 export type IssueSearchParams = RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["parameters"];
 
-export function getSearchResultIssueStatus(issue: IssueSearchResponse["items"][number]): IssueStatus {
+export function getSearchResultIssueStatus(
+	issue: Pick<IssueSearchResponse["items"][number], "state" | "state_reason" | "pull_request" | "closed_at">,
+): IssueStatus {
 	if (issue.pull_request?.merged_at || issue.state_reason === "completed") {
 		return IssueStatus.Done;
 	} else if (issue.closed_at || issue.state === "closed") {

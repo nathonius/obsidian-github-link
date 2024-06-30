@@ -1,16 +1,6 @@
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
-import type {
-	IssueListParams,
-	IssueListResponse,
-	IssueResponse,
-	IssueSearchResponse,
-	PullListParams,
-	PullListResponse,
-	PullResponse,
-	RepoSearchResponse,
-} from "./response";
-import { logger } from "src/plugin";
-import { isSuccessResponse } from "src/util";
+import { logger } from "../plugin";
+import { isSuccessResponse, sanitizeObject } from "../util";
 
 interface CacheParams {
 	request: RequestUrlParam;
@@ -84,7 +74,12 @@ export class RequestCache {
 	}
 
 	public get(request: RequestUrlParam): CacheEntry | null {
-		return this.entries[this.getCacheKey(request)] ?? null;
+		const entry: CacheEntry | null = this.entries[this.getCacheKey(request)] ?? null;
+		// Ensure headers are defined; some old cache entries might not have them
+		if (entry && !entry.response.headers) {
+			entry.response.headers = {};
+		}
+		return entry;
 	}
 
 	public set(request: RequestUrlParam, response: RequestUrlResponse): void {
@@ -99,7 +94,11 @@ export class RequestCache {
 
 		// Slim down the data we store
 		const _request: Partial<RequestUrlParam> = { url: request.url, body: request.body };
-		const _response: Partial<RequestUrlResponse> = { json: response.json, status: response.status };
+		const _response: Partial<RequestUrlResponse> = {
+			json: response.json,
+			status: response.status,
+			headers: sanitizeObject(response.headers, { link: true }),
+		};
 
 		const entry = new CacheEntry(
 			_request as RequestUrlParam,
@@ -151,157 +150,5 @@ export class RequestCache {
 
 	private getCacheKey(request: RequestUrlParam): string {
 		return request.url;
-	}
-}
-
-class OldCacheEntry<T> {
-	constructor(
-		public value: T,
-		public created: Date = new Date(),
-		public ttl: number = 20,
-	) {}
-
-	get expired(): boolean {
-		const expiry = this.created.getTime() + this.ttl * 60 * 1000;
-		return new Date().getTime() > expiry;
-	}
-}
-
-class OldQueryCache {
-	public readonly issueCache: Record<string, OldCacheEntry<IssueSearchResponse>> = {};
-	public readonly repoCache: Record<string, OldCacheEntry<RepoSearchResponse>> = {};
-}
-
-class OldRepoCache {
-	public readonly issueCache: Record<number, OldCacheEntry<IssueResponse>> = {};
-	public readonly issueListForRepoCache: Record<string, OldCacheEntry<IssueListResponse>> = {};
-	public readonly pullCache: Record<string, OldCacheEntry<PullResponse>> = {};
-	public readonly pullListForRepoCache: Record<string, OldCacheEntry<PullListResponse>> = {};
-}
-
-class OldOrgCache {
-	public readonly repos: Record<string, OldRepoCache> = {};
-	public readonly issueList: Record<string, OldCacheEntry<IssueListResponse>> = {};
-}
-
-/**
- * @deprecated Should remove this in the one place its still used, but need an alternative solution first
- */
-export class OldCache {
-	public readonly generic: Record<string, OldCacheEntry<unknown>> = {};
-	public readonly orgs: Record<string, OldOrgCache> = {};
-	public readonly queries = new OldQueryCache();
-
-	getGeneric(url: string): unknown {
-		return this.getCacheValue(this.generic[url] ?? null);
-	}
-
-	setGeneric(url: string, value: unknown): void {
-		this.generic[url] = new OldCacheEntry(value);
-	}
-
-	getIssue(org: string, repo: string, issue: number): IssueResponse | null {
-		const repoCache = this.getRepoCache(org, repo);
-		return this.getCacheValue(repoCache.issueCache[issue] ?? null);
-	}
-
-	setIssue(org: string, repo: string, issue: IssueResponse): void {
-		const issueCache = this.getRepoCache(org, repo).issueCache;
-		const existingCache = issueCache[issue.number];
-		if (existingCache) {
-			const now = new Date();
-			existingCache.created = now;
-			existingCache.value = issue;
-		} else {
-			issueCache[issue.number] = new OldCacheEntry<IssueResponse>(issue);
-		}
-	}
-
-	getIssueList(org: string, params: IssueListParams): IssueListResponse | null {
-		const orgCache = this.getOrgCache(org);
-		return this.getCacheValue(orgCache.issueList[JSON.stringify(params)] ?? null);
-	}
-
-	setIssueList(org: string, params: IssueListParams, value: IssueListResponse): void {
-		const orgCache = this.getOrgCache(org);
-		orgCache.issueList[JSON.stringify(params)] = new OldCacheEntry(value);
-	}
-
-	getIssueListForRepo(org: string, repo: string, params: IssueListParams): IssueListResponse | null {
-		const repoCache = this.getRepoCache(org, repo);
-		return this.getCacheValue(repoCache.issueListForRepoCache[JSON.stringify(params)] ?? null);
-	}
-
-	setIssueListForRepo(org: string, repo: string, params: IssueListParams, value: IssueListResponse): void {
-		const repoCache = this.getRepoCache(org, repo);
-		repoCache.issueListForRepoCache[JSON.stringify(params)] = new OldCacheEntry(value);
-	}
-
-	getPullRequest(org: string, repo: string, pullRequest: number): PullResponse | null {
-		const repoCache = this.getRepoCache(org, repo);
-		return this.getCacheValue(repoCache.pullCache[pullRequest] ?? null);
-	}
-
-	getPullListForRepo(org: string, repo: string, params: PullListParams): PullListResponse | null {
-		const repoCache = this.getRepoCache(org, repo);
-		return this.getCacheValue(repoCache.pullListForRepoCache[JSON.stringify(params)] ?? null);
-	}
-
-	setPullListForRepo(org: string, repo: string, params: PullListParams, value: PullListResponse): void {
-		const repoCache = this.getRepoCache(org, repo);
-		repoCache.pullListForRepoCache[JSON.stringify(params)] = new OldCacheEntry(value);
-	}
-
-	setPullRequest(org: string, repo: string, pullRequest: PullResponse): void {
-		const pullCache = this.getRepoCache(org, repo).pullCache;
-		const existingCache = pullCache[pullRequest.number];
-		if (existingCache) {
-			const now = new Date();
-			existingCache.created = now;
-			existingCache.value = pullRequest;
-		} else {
-			pullCache[pullRequest.number] = new OldCacheEntry<PullResponse>(pullRequest);
-		}
-	}
-
-	getIssueQuery(query: string): IssueSearchResponse | null {
-		return this.getCacheValue(this.queries.issueCache[query] ?? null);
-	}
-
-	setIssueQuery(query: string, result: IssueSearchResponse): void {
-		this.queries.issueCache[query] = new OldCacheEntry<IssueSearchResponse>(result);
-	}
-
-	getRepoQuery(query: string): RepoSearchResponse | null {
-		return this.getCacheValue(this.queries.repoCache[query] ?? null);
-	}
-
-	setRepoQuery(query: string, result: RepoSearchResponse): void {
-		this.queries.repoCache[query] = new OldCacheEntry<RepoSearchResponse>(result);
-	}
-
-	private getOrgCache(org: string): OldOrgCache {
-		let orgCache = this.orgs[org];
-		if (!orgCache) {
-			orgCache = this.orgs[org] = new OldOrgCache();
-		}
-		return orgCache;
-	}
-
-	private getRepoCache(org: string, repo: string) {
-		const orgCache = this.getOrgCache(org);
-		let repoCache = orgCache.repos[repo];
-		if (!repoCache) {
-			repoCache = orgCache.repos[repo] = new OldRepoCache();
-		}
-		return repoCache;
-	}
-
-	private getCacheValue<T>(cacheEntry: OldCacheEntry<T> | null): T | null {
-		if (!cacheEntry || cacheEntry.expired) {
-			return null;
-		} else {
-			return cacheEntry.value;
-		}
 	}
 }

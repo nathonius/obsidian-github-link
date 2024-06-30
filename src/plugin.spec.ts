@@ -1,10 +1,9 @@
-import { expect, jest, test } from "@jest/globals";
-import { GithubLinkPlugin, PluginData, PluginSettings, getCache } from "./plugin";
-import { beforeEach, describe } from "node:test";
+import { expect, jest, test, describe, beforeEach } from "@jest/globals";
 import type { Plugin, RequestUrlResponse } from "obsidian";
 import { App } from "obsidian";
+import type { PluginMock } from "../__mocks__/obsidian/Plugin";
 import * as manifest from "../manifest.json";
-import type { PluginMock } from "__mocks__/obsidian/Plugin";
+import { GithubLinkPlugin, PluginData, PluginSettings, getCache } from "./plugin";
 import type { GithubLinkPluginSettings } from "./settings";
 import { DEFAULT_SETTINGS } from "./settings";
 import { CacheEntry, RequestCache } from "./github/cache";
@@ -57,7 +56,7 @@ describe("GithubLinkPlugin", () => {
 		test("should load stored cache", async () => {
 			const cacheEntry = new CacheEntry(
 				{ url: "mock" },
-				{ json: "mock" } as RequestUrlResponse,
+				{ json: "mock", headers: {} } as RequestUrlResponse,
 				new Date(),
 				null,
 				null,
@@ -76,6 +75,8 @@ describe("GithubLinkPlugin", () => {
 			{ stored: { tagTooltips: false }, name: "tagTooltips" },
 			{ stored: { minRequestSeconds: 69 }, name: "minRequestSeconds" },
 			{ stored: { logLevel: LogLevel.Debug }, name: "logLevel" },
+			{ stored: { showPagination: !DEFAULT_SETTINGS.showPagination }, name: "showPagination" },
+			{ stored: { showRefresh: !DEFAULT_SETTINGS.showRefresh }, name: "showRefresh" },
 		])("should merge stored and default settings ($name)", async ({ stored }) => {
 			plugin = new GithubLinkPlugin(app, manifest);
 			mockedPlugin(plugin).data = { settings: stored };

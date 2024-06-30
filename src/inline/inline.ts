@@ -1,13 +1,13 @@
-import { IssueStatus, getIssueStatus, getPRStatus } from "src/github/response";
-import { getIssue, getPullRequest } from "../github/github";
-import { setIssueIcon, setPRIcon, setPRMergeableIcon } from "src/icon";
-
-import type { ParsedUrl } from "../github/url-parse";
-import { PluginSettings } from "src/plugin";
-import type { PullResponse } from "src/github/response";
-import { RequestError } from "src/util";
-import { parseUrl } from "../github/url-parse";
 import { setIcon } from "obsidian";
+import { IssueStatus, getIssueStatus, getPRStatus } from "../github/response";
+import { setIssueIcon, setPRIcon, setPRMergeableIcon } from "../icon";
+
+import { PluginSettings } from "../plugin";
+import type { PullResponse } from "../github/response";
+import { RequestError } from "../util";
+import { parseUrl } from "../github/url-parse";
+import type { ParsedUrl } from "../github/url-parse";
+import { getIssue, getPullRequest } from "../github/github";
 
 interface TagConfig {
 	icon: HTMLSpanElement;

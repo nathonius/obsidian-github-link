@@ -1,9 +1,9 @@
 import type { App } from "obsidian";
 import { Setting } from "obsidian";
-import type { GithubAccount } from "./types";
-import { AuthModal } from "src/auth-modal";
-import { auth } from "src/github/auth";
 import type { Verification } from "@octokit/auth-oauth-device/dist-types/types";
+import { AuthModal } from "../auth-modal";
+import { auth } from "../github/auth";
+import type { GithubAccount } from "./types";
 
 export class AccountSettings {
 	authModal: AuthModal | null = null;

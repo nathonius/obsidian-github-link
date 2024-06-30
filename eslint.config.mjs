@@ -5,6 +5,7 @@ import tseslint from "typescript-eslint";
 import UnusedImportsPlugin from "eslint-plugin-unused-imports";
 import PrettierConfig from "eslint-config-prettier";
 import JestPlugin from "eslint-plugin-jest";
+import * as ImportPlugin from "eslint-plugin-import";
 
 export default tseslint.config(
 	{
@@ -23,6 +24,7 @@ export default tseslint.config(
 		plugins: {
 			"unused-imports": UnusedImportsPlugin,
 			jest: JestPlugin,
+			import: ImportPlugin,
 		},
 		rules: {
 			"@typescript-eslint/restrict-template-expressions": "warn",
@@ -47,6 +49,8 @@ export default tseslint.config(
 					argsIgnorePattern: "^_",
 				},
 			],
+			"import/order": "error",
+			"import/no-duplicates": "error",
 		},
 	},
 	PrettierConfig,
