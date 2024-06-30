@@ -62,6 +62,7 @@ body.theme-light {
 	--gh-color-primer-border-contrast: rgba(31, 35, 40, 0.1);
 	--gh-color-primer-shadow-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 	--gh-color-primer-shadow-inset: inset 0 1px 0 rgba(208, 215, 222, 0.2);
+	--status-color: var(--gh-color-canvas-subtle);
 }
 
 body.theme-dark {
@@ -310,6 +311,10 @@ table.github-link-table {
 	font-weight: var(--font-bold);
 }
 
+.github-link-table td {
+	vertical-align: middle;
+}
+
 .github-link-table a {
 	text-decoration: none;
 }
@@ -323,8 +328,31 @@ table.github-link-table {
 }
 
 .github-link-table-status,
-.github-link-table-author {
+.github-link-table-author,
+.github-link-table-labels {
 	display: flex;
 	gap: 6px;
 	align-items: center;
+}
+
+.github-link-table-labels {
+	height: 100%;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.github-link-table-label {
+	border-radius: 2em;
+	font-size: 0.8em;
+	padding: 0 6px;
+	border: 1px solid var(--status-color);
+}
+
+body.theme-light .github-link-table .github-link-table-labels .github-link-table-label {
+	background-color: color-mix(in srgb, var(--status-color) 50%, transparent);
+	color: var(--text-normal);
+}
+body.theme-dark .github-link-table .github-link-table-labels .github-link-table-label {
+	background-color: color-mix(in srgb, var(--status-color) 20%, transparent);
+	color: var(--status-color);
 }

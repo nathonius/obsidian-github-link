@@ -80,4 +80,22 @@ export const CommonIssuePRColumns: ColumnsMap = {
 			DateCell(row.closed_at, el);
 		},
 	},
+	labels: {
+		header: "Labels",
+		cell: (row, el) => {
+			const wrapper = el.createDiv({ cls: "github-link-table-labels" });
+			for (const label of row.labels ?? []) {
+				// When would the label just be a string?
+				if (typeof label !== "string") {
+					const labelEl = wrapper.createSpan({
+						cls: "github-link-table-label",
+						text: label.name,
+					});
+					if (label.color) {
+						labelEl.style.setProperty("--status-color", `#${label.color}`);
+					}
+				}
+			}
+		},
+	},
 };
