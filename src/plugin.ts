@@ -36,6 +36,7 @@ export class GithubLinkPlugin extends Plugin {
 				tagTooltips: data.tagTooltips ?? PluginSettings.tagTooltips,
 				defaultAccount: data.defaultAccount ?? PluginSettings.defaultAccount,
 				showPagination: data.showPagination ?? PluginSettings.showPagination,
+				showRefresh: data.showRefresh ?? PluginSettings.showRefresh,
 			};
 			const newData: GithubLinkPluginData = {
 				cache: data.cache ?? PluginData.cache,

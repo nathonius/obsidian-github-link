@@ -77,6 +77,7 @@ describe("GithubLinkPlugin", () => {
 			{ stored: { minRequestSeconds: 69 }, name: "minRequestSeconds" },
 			{ stored: { logLevel: LogLevel.Debug }, name: "logLevel" },
 			{ stored: { showPagination: !DEFAULT_SETTINGS.showPagination }, name: "showPagination" },
+			{ stored: { showRefresh: !DEFAULT_SETTINGS.showRefresh }, name: "showRefresh" },
 		])("should merge stored and default settings ($name)", async ({ stored }) => {
 			plugin = new GithubLinkPlugin(app, manifest);
 			mockedPlugin(plugin).data = { settings: stored };

@@ -193,9 +193,7 @@ export class GithubQuery {
 
 		this.renderPagination(meta, footer);
 
-		// TODO: Add this to query params / settings?
-		const showRefresh = true;
-		if (showRefresh) {
+		if (PluginSettings.showRefresh) {
 			const refreshButton = footer.createEl("button", {
 				cls: "clickable-icon",
 				attr: { "aria-label": "Refresh Results" },
