@@ -1,5 +1,4 @@
-import { beforeEach, describe } from "node:test";
-import { expect, jest, test } from "@jest/globals";
+import { expect, jest, test, describe, beforeEach } from "@jest/globals";
 import type { Plugin, RequestUrlResponse } from "obsidian";
 import { App } from "obsidian";
 import type { PluginMock } from "../__mocks__/obsidian/Plugin";

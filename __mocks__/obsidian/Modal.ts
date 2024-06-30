@@ -1,5 +1,4 @@
-import type { App, Scope } from "obsidian";
-import type { Modal } from "obsidian";
+import type { App, Scope, Modal } from "obsidian";
 
 export class ModalMock implements Modal {
 	constructor(public app: App) {}
