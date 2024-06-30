@@ -3,7 +3,7 @@
 import { parseUrl, repoAPIToBrowserUrl } from "../../github/url-parse";
 
 import { DateFormat } from "../../util";
-import type { IssueListResponse } from "../../github/response";
+import type { IssueListResponse, UserResponse } from "../../github/response";
 import type { TableResult } from "../types";
 
 export interface ColumnGetter<T> {
@@ -26,6 +26,18 @@ export function DateCell(value: string | undefined | null, el: HTMLTableCellElem
 
 	// TODO: Allow formatting this date via options.
 	el.setText(DateFormat.DATE_SHORT.format(asDate));
+}
+
+export function UserCell(user: UserResponse, el: HTMLElement): void {
+	const anchor = el.createEl("a", {
+		cls: "github-link-table-author",
+		href: user?.html_url ?? "#",
+		attr: { target: "_blank" },
+	});
+	if (user?.avatar_url) {
+		anchor.createEl("img", { cls: "github-link-table-avatar", attr: { src: user.avatar_url } });
+	}
+	anchor.createSpan({ text: user?.login });
 }
 
 /**
@@ -51,15 +63,13 @@ export const CommonIssuePRColumns: ColumnsMap = {
 	author: {
 		header: "Author",
 		cell: (row, el) => {
-			const anchor = el.createEl("a", {
-				cls: "github-link-table-author",
-				href: row.user?.html_url,
-				attr: { target: "_blank" },
-			});
-			if (row.user?.avatar_url) {
-				anchor.createEl("img", { cls: "github-link-table-avatar", attr: { src: row.user.avatar_url } });
-			}
-			anchor.createSpan({ text: row.user?.login });
+			UserCell(row.user, el);
+		},
+	},
+	assignee: {
+		header: "Assignee",
+		cell: (row, el) => {
+			UserCell(row.assignee, el);
 		},
 	},
 	created: {
