@@ -101,7 +101,7 @@ export class GithubQuery {
 		columns = columns.map((c) => c.toLowerCase());
 
 		// Render
-		this.renderFooter(this.params, this.result, this.resultMeta, tableWrapper);
+		this.renderFooter(this.params, this.resultMeta, tableWrapper);
 		this.renderHeader(table, queryType, columns);
 		this.renderBody(table, queryType, columns, this.result);
 	}
@@ -140,17 +140,12 @@ export class GithubQuery {
 		}
 	}
 
-	private renderFooter(
-		params: QueryParams,
-		result: TableResult,
-		meta: PaginationMeta | null,
-		parent: HTMLElement,
-	): void {
+	private renderFooter(params: QueryParams, meta: PaginationMeta | null, parent: HTMLElement): void {
 		const footer = parent.createDiv({ cls: "github-link-table-footer" });
 
 		// Add external link to footer if available
 		const externalLink = this.getExternalLink(params);
-		if (externalLink) {
+		if (externalLink && PluginSettings.showExternalLink) {
 			footer.createEl("a", {
 				cls: "github-link-table-footer-external-link",
 				text: "View on GitHub",
