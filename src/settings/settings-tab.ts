@@ -96,6 +96,28 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
+			.setName("Show refresh button")
+			.setDesc("Add a refresh button to tables to manually skip the cache.")
+			.addToggle((toggle) => {
+				toggle.setValue(PluginSettings.showRefresh);
+				toggle.onChange((value) => {
+					PluginSettings.showRefresh = value;
+					void this.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Show pagination")
+			.setDesc("For query results with more than a single page of results, show pagination controls below the table.")
+			.addToggle((toggle) => {
+				toggle.setValue(PluginSettings.showPagination);
+				toggle.onChange((value) => {
+					PluginSettings.showPagination = value;
+					void this.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
 			.setName("Status tooltips")
 			.setDesc("Add a tooltip to issue and pull request status icons with status text")
 			.addToggle((toggle) => {
