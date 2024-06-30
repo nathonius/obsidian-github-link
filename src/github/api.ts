@@ -67,7 +67,7 @@ export class GitHubApi {
 		do {
 			match = linkRelPattern.exec(link);
 			logger.debug(match);
-			if (match && match.groups) {
+			if (match?.groups) {
 				const params = new URLSearchParams(match.groups.qp);
 				const page = parseInt(params.get("page") ?? "");
 				const per_page = parseInt(params.get("per_page") ?? "");

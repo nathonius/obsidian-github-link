@@ -51,7 +51,6 @@ export function getIssue(org: string, repo: string, issue: number, skipCache = f
 	return api.getIssue(org, repo, issue, getToken(org), skipCache);
 }
 
-// TODO: Cache this response
 export function getMyIssues(
 	params: QueryParams,
 	org?: string,
@@ -89,7 +88,6 @@ export function getMyIssues(
 	return api.listIssuesForToken(listParams, account.token, skipCache);
 }
 
-// TODO: Cache this response
 export function getIssuesForRepo(
 	params: QueryParams,
 	org: string,
@@ -133,7 +131,6 @@ export function getPullRequest(
 	return api.getPullRequest(org, repo, pullRequest, getToken(org), skipCache);
 }
 
-// TODO: Cache this response
 export function getPullRequestsForRepo(
 	params: QueryParams,
 	org: string,
