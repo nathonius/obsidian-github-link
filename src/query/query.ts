@@ -149,7 +149,7 @@ export class GithubQuery {
 		const footer = parent.createDiv({ cls: "github-link-table-footer" });
 
 		// Add external link to footer if available
-		const externalLink = this.getExternalLink(params, result);
+		const externalLink = this.getExternalLink(params);
 		if (externalLink) {
 			footer.createEl("a", {
 				cls: "github-link-table-footer-external-link",
@@ -214,8 +214,12 @@ export class GithubQuery {
 		return Boolean(meta && (meta.first || meta.prev || meta.next || meta.last));
 	}
 
-	// TODO: implement this
-	private getExternalLink(params: QueryParams, result: TableResult): string | null {
-		return null;
+	private getExternalLink(params: QueryParams): string | null {
+		// Custom search query
+		if (params.query && (params.queryType === QueryType.Issue || params.queryType === QueryType.PullRequest)) {
+			return `https://github.com/search?q=${encodeURIComponent(params.query)}`;
+		} else {
+			return null;
+		}
 	}
 }
