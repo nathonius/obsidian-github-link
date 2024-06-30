@@ -56,7 +56,7 @@ describe("GithubLinkPlugin", () => {
 		test("should load stored cache", async () => {
 			const cacheEntry = new CacheEntry(
 				{ url: "mock" },
-				{ json: "mock" } as RequestUrlResponse,
+				{ json: "mock", headers: {} } as RequestUrlResponse,
 				new Date(),
 				null,
 				null,
