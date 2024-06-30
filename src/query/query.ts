@@ -2,34 +2,20 @@ import { parseYaml, setIcon } from "obsidian";
 import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "../github/github";
 import type {
 	IssueListParams,
-	IssueListResponse,
 	IssueSearchParams,
-	IssueSearchResponse,
 	MaybePaginated,
 	PaginationMeta,
 	PullListParams,
-	PullListResponse,
 } from "../github/response";
-import { PluginSettings, logger } from "../plugin";
+import { PluginSettings } from "../plugin";
 import { getProp, isEqual, titleCase } from "../util";
 import { ALL_COLUMNS, DEFAULT_COLUMNS } from "./column/defaults";
+import type { QueryParams, TableResult } from "./types";
+import { OutputType, QueryType } from "./types";
 
-export type TableResult = IssueSearchResponse["items"] | IssueListResponse | PullListResponse;
+// TODO: Move these types somewhere else
 
-export enum OutputType {
-	Table = "table",
-}
-
-export enum QueryType {
-	PullRequest = "pull-request",
-	Issue = "issue",
-	Repo = "repo",
-}
-
-export interface BaseParams {
-	refresh?: boolean;
-}
-
+// TODO: Move these methods somewhere else
 export function searchSortFromQuery(params: QueryParams): IssueSearchParams["sort"] {
 	if (params.sort !== "popularity" && params.sort !== "long-running") {
 		return params.sort;
@@ -51,90 +37,7 @@ export function pullListSortFromQuery(params: QueryParams): PullListParams["sort
 	return undefined;
 }
 
-/**
- * Not all fields are supported by all query types
- */
-export interface QueryParams {
-	outputType: OutputType;
-	queryType: QueryType;
-	columns: string[];
-
-	/**
-	 * Custom query. This will override most other options.
-	 */
-	query?: string;
-
-	/**
-	 * Pagination page size
-	 */
-	per_page?: number;
-
-	/**
-	 * Pagination page number
-	 */
-	page?: number;
-
-	/**
-	 * Repository name
-	 */
-	repo?: string;
-
-	/**
-	 * Organization or user name
-	 */
-	org?: string;
-	milestone?: string;
-	state?: "open" | "closed" | "all";
-	assignee?: "none" | "*" | string;
-	creator?: string;
-	mentioned?: string;
-	labels?: string | string[];
-
-	/**
-	 * "comments" - Issues only
-	 * "popularity", "long-running" - Pull requests only
-	 * "reactions" and "interactions" - Search only
-	 */
-	sort?:
-		| "created"
-		| "updated"
-		| "comments"
-		| "popularity"
-		| "long-running"
-		| "reactions"
-		| "reactions-+1"
-		| "reactions--1"
-		| "reactions-smile"
-		| "reactions-thinking_face"
-		| "reactions-heart"
-		| "reactions-tada"
-		| "interactions";
-
-	/**
-	 * Sort direction, for most queries
-	 */
-	direction?: "asc" | "desc";
-	/**
-	 * Sort direction, for search queries
-	 */
-	order?: "asc" | "desc";
-	since?: string;
-
-	/**
-	 * Issue filter type
-	 */
-	filter?: "assigned" | "created" | "mentioned" | "subscribed" | "repos" | "all";
-
-	/**
-	 * Pull request branch
-	 */
-	head?: string;
-
-	/**
-	 * Pull request target
-	 */
-	base?: string;
-}
+// TODO: Move this type somewhere else
 
 export class GithubQuery {
 	private params!: QueryParams;
@@ -212,18 +115,70 @@ export class GithubQuery {
 		if (!this.result) {
 			throw new Error("Attempted to render table before there was a result.");
 		}
-		const params = this.params;
-		const el = this.hostElement;
-		const result = this.result;
-		const meta = this.resultMeta;
 
-		el.empty();
-		const tableWrapper = el.createDiv({ cls: "github-link-table-wrapper" });
+		this.hostElement.empty();
+		const tableWrapper = this.hostElement.createDiv({ cls: "github-link-table-wrapper" });
 		const tableScrollWrapper = tableWrapper.createDiv({ cls: "github-link-table-scroll-wrapper" });
 		const table = tableScrollWrapper.createEl("table", { cls: "github-link-table" });
 
-		// Create footer
-		const footer = tableWrapper.createDiv({ cls: "github-link-table-footer" });
+		const queryType = this.params.queryType;
+
+		// Use default columns if none are provided
+		let columns = this.params.columns;
+		if (!columns || columns.length === 0) {
+			columns = DEFAULT_COLUMNS[queryType];
+		}
+
+		// Ensure columns are lowercase
+		columns = columns.map((c) => c.toLowerCase());
+
+		// Render
+		this.renderFooter(this.params, this.result, this.resultMeta, tableWrapper);
+		this.renderHeader(table, queryType, columns);
+		this.renderBody(table, queryType, columns, this.result);
+	}
+
+	private renderHeader(table: HTMLTableElement, queryType: QueryType, columns: string[]): void {
+		const thead = table.createEl("thead");
+		for (const col of columns) {
+			const th = thead.createEl("th");
+			// Get predefined header if available, otherwise try and create a title
+			th.setText(ALL_COLUMNS[queryType][col]?.header ?? titleCase(col));
+		}
+	}
+
+	private renderBody(table: HTMLTableElement, queryType: QueryType, columns: string[], result: TableResult): void {
+		const tbody = table.createEl("tbody");
+		for (const row of result) {
+			const tr = tbody.createEl("tr");
+			for (const col of columns) {
+				this.renderCell(tr, queryType, col, row);
+			}
+		}
+	}
+
+	private renderCell(tr: HTMLTableRowElement, queryType: QueryType, column: string, row: TableResult[number]): void {
+		const cell = tr.createEl("td");
+		const renderer = ALL_COLUMNS[queryType][column];
+		if (renderer) {
+			void renderer.cell(row, cell);
+		} else {
+			const cellVal = getProp(row, column);
+			if (cellVal !== null) {
+				cell.setText(typeof cellVal === "string" ? cellVal : JSON.stringify(cellVal));
+			} else {
+				cell.setText("");
+			}
+		}
+	}
+
+	private renderFooter(
+		params: QueryParams,
+		result: TableResult,
+		meta: PaginationMeta | null,
+		parent: HTMLElement,
+	): void {
+		const footer = parent.createDiv({ cls: "github-link-table-footer" });
 
 		// Add external link to footer if available
 		const externalLink = this.getExternalLink(params, result);
@@ -236,11 +191,25 @@ export class GithubQuery {
 			});
 		}
 
-		// Add pagination to footer if enabled
-		logger.debug("Meta for query");
-		logger.debug(meta);
+		this.renderPagination(meta, footer);
+
+		// TODO: Add this to query params / settings?
+		const showRefresh = true;
+		if (showRefresh) {
+			const refreshButton = footer.createEl("button", {
+				cls: "clickable-icon",
+				attr: { "aria-label": "Refresh Results" },
+			});
+			refreshButton.addEventListener("click", () => {
+				void this.setParams(this.params, true);
+			});
+			setIcon(refreshButton, "refresh-cw");
+		}
+	}
+
+	private renderPagination(meta: PaginationMeta | null, parent: HTMLElement): void {
 		if (PluginSettings.showPagination && this.hasSomeRel(meta)) {
-			const pagination = footer.createDiv({ cls: "github-link-table-pagination" });
+			const pagination = parent.createDiv({ cls: "github-link-table-pagination" });
 
 			// First, previous
 			if (meta?.first && (!meta.prev || meta.prev.page !== meta.first.page)) {
@@ -273,58 +242,13 @@ export class GithubQuery {
 				});
 			}
 		}
-
-		// TODO: Add this to query params / settings?
-		const showRefresh = true;
-		if (showRefresh) {
-			const refreshButton = footer.createEl("button", {
-				cls: "clickable-icon",
-				attr: { "aria-label": "Refresh Results" },
-			});
-			refreshButton.addEventListener("click", () => {
-				void this.setParams(this.params, true);
-			});
-			setIcon(refreshButton, "refresh-cw");
-		}
-
-		const thead = table.createEl("thead");
-		let columns = params.columns;
-		if (!columns || columns.length === 0) {
-			columns = DEFAULT_COLUMNS[params.queryType];
-		}
-
-		// Ensure columns are lowercase
-		columns = columns.map((c) => c.toLowerCase());
-
-		for (const col of columns) {
-			const th = thead.createEl("th");
-			// Get predefined header if available
-			th.setText(ALL_COLUMNS[params.queryType][col]?.header ?? titleCase(col));
-		}
-		const tbody = table.createEl("tbody");
-		for (const row of result) {
-			const tr = tbody.createEl("tr");
-			for (const col of columns) {
-				const cell = tr.createEl("td");
-				const renderer = ALL_COLUMNS[params.queryType][col];
-				if (renderer) {
-					void renderer.cell(row, cell);
-				} else {
-					const cellVal = getProp(row, col);
-					if (cellVal !== null) {
-						cell.setText(typeof cellVal === "string" ? cellVal : JSON.stringify(cellVal));
-					} else {
-						cell.setText("");
-					}
-				}
-			}
-		}
 	}
 
 	private hasSomeRel(meta: PaginationMeta | null): boolean {
 		return Boolean(meta && (meta.first || meta.prev || meta.next || meta.last));
 	}
 
+	// TODO: implement this
 	private getExternalLink(params: QueryParams, result: TableResult): string | null {
 		return null;
 	}

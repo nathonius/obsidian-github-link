@@ -4,7 +4,7 @@ import { parseUrl, repoAPIToBrowserUrl } from "../../github/url-parse";
 
 import { DateFormat } from "../../util";
 import type { IssueListResponse } from "../../github/response";
-import type { TableResult } from "../query";
+import type { TableResult } from "../types";
 
 export interface ColumnGetter<T> {
 	header: string;

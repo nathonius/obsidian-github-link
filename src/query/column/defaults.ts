@@ -1,4 +1,4 @@
-import type { QueryType } from "../query";
+import type { QueryType } from "../types";
 import { IssueColumns } from "./issue";
 import { PullRequestColumns } from "./pull-request";
 import { RepoColumns } from "./repo";
