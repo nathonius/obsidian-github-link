@@ -1,43 +1,11 @@
 import { parseYaml, setIcon } from "obsidian";
 import { searchIssues, getIssuesForRepo, getMyIssues, getPullRequestsForRepo } from "../github/github";
-import type {
-	IssueListParams,
-	IssueSearchParams,
-	MaybePaginated,
-	PaginationMeta,
-	PullListParams,
-} from "../github/response";
+import type { MaybePaginated, PaginationMeta } from "../github/response";
 import { PluginSettings } from "../plugin";
 import { getProp, isEqual, titleCase } from "../util";
 import { ALL_COLUMNS, DEFAULT_COLUMNS } from "./column/defaults";
 import type { QueryParams, TableResult } from "./types";
 import { OutputType, QueryType } from "./types";
-
-// TODO: Move these types somewhere else
-
-// TODO: Move these methods somewhere else
-export function searchSortFromQuery(params: QueryParams): IssueSearchParams["sort"] {
-	if (params.sort !== "popularity" && params.sort !== "long-running") {
-		return params.sort;
-	}
-	return undefined;
-}
-
-export function issueListSortFromQuery(params: QueryParams): IssueListParams["sort"] {
-	if (params.sort && ["created", "updated", "comments"].includes(params.sort)) {
-		return params.sort as IssueListParams["sort"];
-	}
-	return undefined;
-}
-
-export function pullListSortFromQuery(params: QueryParams): PullListParams["sort"] {
-	if (params.sort && ["created", "updated", "popularity", "long-running"].includes(params.sort)) {
-		return params.sort as PullListParams["sort"];
-	}
-	return undefined;
-}
-
-// TODO: Move this type somewhere else
 
 export class GithubQuery {
 	private params!: QueryParams;

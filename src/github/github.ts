@@ -2,7 +2,7 @@ import { RequestError, mapObject } from "../util";
 
 import type { GithubAccount } from "../settings";
 import { PluginSettings } from "../plugin";
-import { issueListSortFromQuery, pullListSortFromQuery, searchSortFromQuery } from "../query/query";
+import { issueListSortFromQuery, pullListSortFromQuery, searchSortFromQuery } from "../query/sort";
 import type { QueryParams } from "../query/types";
 import { OldCache } from "./cache";
 import { GitHubApi } from "./api";
