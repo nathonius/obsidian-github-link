@@ -1,5 +1,7 @@
 import { LogLevel } from "../logger";
 
+export const DATA_VERSION = 1;
+
 export interface GithubAccount {
 	id: string;
 	name: string;
@@ -12,6 +14,7 @@ export interface GithubAccount {
 export interface GithubLinkPluginData {
 	settings: GithubLinkPluginSettings;
 	cache: string[] | null;
+	dataVersion: number;
 }
 
 export interface GithubLinkPluginSettings {
