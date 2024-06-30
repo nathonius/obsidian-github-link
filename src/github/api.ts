@@ -141,7 +141,7 @@ export class GitHubApi {
 
 	public async searchIssues(params: IssueSearchParams, token?: string): Promise<MaybePaginated<IssueSearchResponse>> {
 		const url = this.addParams(`${GitHubApi.baseApi}/search/issues`, params);
-		const { meta, response } = await this.githubRequest({ url }, token);
+		const { meta, response } = await this.queueRequest({ url }, token);
 		return { meta, response: response.json as IssueSearchResponse };
 	}
 

@@ -4,7 +4,6 @@ import type { GithubAccount } from "../settings";
 import { PluginSettings } from "../plugin";
 import { issueListSortFromQuery, pullListSortFromQuery, searchSortFromQuery } from "../query/sort";
 import type { QueryParams } from "../query/types";
-import { OldCache } from "./cache";
 import { GitHubApi } from "./api";
 import type {
 	CheckRunListResponse,
@@ -21,7 +20,6 @@ import type {
 	TimelineCrossReferencedEvent,
 } from "./response";
 
-const cache = new OldCache();
 const tokenMatchRegex = /repo:(.+)\//;
 const api = new GitHubApi();
 
@@ -176,15 +174,7 @@ export async function searchIssues(
 	);
 
 	setPageSize(searchParams);
-
-	const cachedResponse = cache.getIssueQuery(query);
-	if (cachedResponse && !skipCache) {
-		return Promise.resolve({ meta: {}, response: cachedResponse });
-	}
-
-	const result = await api.searchIssues(searchParams, getToken(org, query));
-	cache.setIssueQuery(query, result.response);
-	return result;
+	return api.searchIssues(searchParams, getToken(org, query));
 }
 
 export async function getPRForIssue(timelineUrl: string, org?: string): Promise<string | null> {
