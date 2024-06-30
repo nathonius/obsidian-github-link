@@ -28,15 +28,19 @@ export class GitHubApi {
 	private static rateLimitReset: Date | null = null;
 	private static q = new Queue({ autostart: true, concurrency: 1 });
 
-	public queueRequest(config: RequestUrlParam, token?: string): Promise<MaybePaginated<RequestUrlResponse>> {
+	public queueRequest(
+		config: RequestUrlParam,
+		token?: string,
+		skipCache = false,
+	): Promise<MaybePaginated<RequestUrlResponse>> {
 		// Responses we (probably) have cached will skip the queue
 		if (getCache().get(config)) {
-			return this.githubRequest(config, token);
+			return this.githubRequest(config, token, skipCache);
 		}
 
 		const { resolve, reject, promise } = promiseWithResolvers<MaybePaginated<RequestUrlResponse>>();
 		GitHubApi.q.push(() => {
-			return this.githubRequest(config, token)
+			return this.githubRequest(config, token, skipCache)
 				.then((response) => {
 					resolve(response);
 				})
@@ -82,18 +86,29 @@ export class GitHubApi {
 		return paginationMeta;
 	}
 
-	public async getIssue(org: string, repo: string, issue: number, token?: string): Promise<IssueResponse> {
+	public async getIssue(
+		org: string,
+		repo: string,
+		issue: number,
+		token?: string,
+		skipCache = false,
+	): Promise<IssueResponse> {
 		const { response } = await this.queueRequest(
 			{ url: `${GitHubApi.baseApi}/repos/${org}/${repo}/issues/${issue}` },
 			token,
+			skipCache,
 		);
 
 		return response.json as IssueResponse;
 	}
 
-	public async listIssuesForToken(params: IssueListParams, token: string): Promise<MaybePaginated<IssueListResponse>> {
+	public async listIssuesForToken(
+		params: IssueListParams,
+		token: string,
+		skipCache = false,
+	): Promise<MaybePaginated<IssueListResponse>> {
 		const url = this.addParams(`${GitHubApi.baseApi}/issues`, params as Record<string, unknown>);
-		const { meta, response } = await this.queueRequest({ url }, token);
+		const { meta, response } = await this.queueRequest({ url }, token, skipCache);
 		return { meta, response: response.json as IssueListResponse };
 	}
 
@@ -102,18 +117,26 @@ export class GitHubApi {
 		repo: string,
 		params: IssueListParams = {},
 		token?: string,
+		skipCache = false,
 	): Promise<MaybePaginated<IssueListResponse>> {
 		const url = this.addParams(`${GitHubApi.baseApi}/repos/${org}/${repo}/issues`, params as Record<string, unknown>);
-		const { meta, response } = await this.queueRequest({ url }, token);
+		const { meta, response } = await this.queueRequest({ url }, token, skipCache);
 		return { meta, response: response.json as IssueListResponse };
 	}
 
-	public async getPullRequest(org: string, repo: string, pr: number, token?: string): Promise<PullResponse> {
+	public async getPullRequest(
+		org: string,
+		repo: string,
+		pr: number,
+		token?: string,
+		skipCache = false,
+	): Promise<PullResponse> {
 		const { response } = await this.queueRequest(
 			{
 				url: `${GitHubApi.baseApi}/repos/${org}/${repo}/pulls/${pr}`,
 			},
 			token,
+			skipCache,
 		);
 		return response.json as PullResponse;
 	}
@@ -123,25 +146,38 @@ export class GitHubApi {
 		repo: string,
 		params: PullListParams = {},
 		token?: string,
+		skipCache = false,
 	): Promise<MaybePaginated<PullListResponse>> {
 		const url = this.addParams(`${GitHubApi.baseApi}/repos/${org}/${repo}/pulls`, params as Record<string, unknown>);
-		const { meta, response } = await this.queueRequest({ url }, token);
+		const { meta, response } = await this.queueRequest({ url }, token, skipCache);
 		return { meta, response: response.json as PullListResponse };
 	}
 
-	public async getCode(org: string, repo: string, path: string, branch: string, token?: string): Promise<CodeResponse> {
+	public async getCode(
+		org: string,
+		repo: string,
+		path: string,
+		branch: string,
+		token?: string,
+		skipCache = false,
+	): Promise<CodeResponse> {
 		const { response } = await this.queueRequest(
 			{
 				url: `${GitHubApi.baseApi}/repos/${org}/${repo}/contents/${path}?ref=${branch}`,
 			},
 			token,
+			skipCache,
 		);
 		return response.json as CodeResponse;
 	}
 
-	public async searchIssues(params: IssueSearchParams, token?: string): Promise<MaybePaginated<IssueSearchResponse>> {
+	public async searchIssues(
+		params: IssueSearchParams,
+		token?: string,
+		skipCache = false,
+	): Promise<MaybePaginated<IssueSearchResponse>> {
 		const url = this.addParams(`${GitHubApi.baseApi}/search/issues`, params);
-		const { meta, response } = await this.queueRequest({ url }, token);
+		const { meta, response } = await this.queueRequest({ url }, token, skipCache);
 		return { meta, response: response.json as IssueSearchResponse };
 	}
 
@@ -150,10 +186,12 @@ export class GitHubApi {
 		repo: string,
 		ref: string,
 		token?: string,
+		skipCache = false,
 	): Promise<CheckRunListResponse> {
 		const { response } = await this.githubRequest(
 			{ url: `${GitHubApi.baseApi}/${org}/${repo}/commits/${ref}/check-runs` },
 			token,
+			skipCache,
 		);
 		return response.json as CheckRunListResponse;
 	}
@@ -174,16 +212,19 @@ export class GitHubApi {
 		}
 
 		const config = this.initHeaders(_config, token);
+		let cachedValue: CacheEntry | null = null;
 
-		// Check request cache first
-		const cachedValue = getCache().get(config);
-		if (this.cachedRequestIsRecent(cachedValue, skipCache)) {
-			logger.debug(`Request was too recent. Returning cached value for: ${cachedValue?.request.url}`);
-			logger.debug(cachedValue?.response);
-			return this.getPaginationMeta(cachedValue!.response);
+		if (!skipCache) {
+			// Check request cache first
+			cachedValue = getCache().get(config);
+			if (this.cachedRequestIsRecent(cachedValue)) {
+				logger.debug(`Request was too recent. Returning cached value for: ${cachedValue?.request.url}`);
+				logger.debug(cachedValue?.response);
+				return this.getPaginationMeta(cachedValue!.response);
+			}
+
+			this.setCacheHeaders(config, cachedValue);
 		}
-
-		this.setCacheHeaders(config, cachedValue);
 
 		try {
 			logger.debug(`Request: ${config.url}`);
@@ -264,8 +305,8 @@ export class GitHubApi {
 	/**
 	 * Returns true if we can skip calling the API due to request age
 	 */
-	private cachedRequestIsRecent(cachedValue: CacheEntry | null, skipCache: boolean): boolean {
-		if (skipCache || !cachedValue) {
+	private cachedRequestIsRecent(cachedValue: CacheEntry | null): boolean {
+		if (!cachedValue) {
 			return false;
 		}
 		// Return the cached value if it was recent enough

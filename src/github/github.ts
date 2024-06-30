@@ -20,6 +20,8 @@ import type {
 	TimelineCrossReferencedEvent,
 } from "./response";
 
+// TODO: Refactor this whole file into a class for better use in dataview queries, etc
+
 const tokenMatchRegex = /repo:(.+)\//;
 const api = new GitHubApi();
 
@@ -45,8 +47,8 @@ function getToken(org?: string, query?: string): string | undefined {
 	return account?.token;
 }
 
-export function getIssue(org: string, repo: string, issue: number): Promise<IssueResponse> {
-	return api.getIssue(org, repo, issue, getToken(org));
+export function getIssue(org: string, repo: string, issue: number, skipCache = false): Promise<IssueResponse> {
+	return api.getIssue(org, repo, issue, getToken(org), skipCache);
 }
 
 // TODO: Cache this response
@@ -84,7 +86,7 @@ export function getMyIssues(
 
 	setPageSize(listParams);
 
-	return api.listIssuesForToken(listParams, account.token);
+	return api.listIssuesForToken(listParams, account.token, skipCache);
 }
 
 // TODO: Cache this response
@@ -119,11 +121,16 @@ export function getIssuesForRepo(
 
 	setPageSize(listParams);
 
-	return api.listIssuesForRepo(org, repo, listParams, getToken(org));
+	return api.listIssuesForRepo(org, repo, listParams, getToken(org), skipCache);
 }
 
-export function getPullRequest(org: string, repo: string, pullRequest: number): Promise<PullResponse> {
-	return api.getPullRequest(org, repo, pullRequest, getToken(org));
+export function getPullRequest(
+	org: string,
+	repo: string,
+	pullRequest: number,
+	skipCache = false,
+): Promise<PullResponse> {
+	return api.getPullRequest(org, repo, pullRequest, getToken(org), skipCache);
 }
 
 // TODO: Cache this response
@@ -147,11 +154,16 @@ export function getPullRequestsForRepo(
 	);
 
 	setPageSize(listParams);
-	return api.listPullRequestsForRepo(org, repo, listParams, getToken(org));
+	return api.listPullRequestsForRepo(org, repo, listParams, getToken(org), skipCache);
 }
 
-export function listCheckRunsForRef(org: string, repo: string, ref: string): Promise<CheckRunListResponse> {
-	return api.listCheckRunsForRef(org, repo, ref, getToken(org));
+export function listCheckRunsForRef(
+	org: string,
+	repo: string,
+	ref: string,
+	skipCache = false,
+): Promise<CheckRunListResponse> {
+	return api.listCheckRunsForRef(org, repo, ref, getToken(org), skipCache);
 }
 
 export async function searchIssues(
@@ -174,9 +186,10 @@ export async function searchIssues(
 	);
 
 	setPageSize(searchParams);
-	return api.searchIssues(searchParams, getToken(org, query));
+	return api.searchIssues(searchParams, getToken(org, query), skipCache);
 }
 
+// TODO: This is in the wrong place and should be at the API level to be properly cached
 export async function getPRForIssue(timelineUrl: string, org?: string): Promise<string | null> {
 	let result: IssueTimelineResponse | null = null;
 	try {
