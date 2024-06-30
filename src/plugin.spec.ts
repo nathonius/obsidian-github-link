@@ -71,12 +71,12 @@ describe("GithubLinkPlugin", () => {
 		test.each<{ stored: Partial<GithubLinkPluginSettings>; name: string }>([
 			{ stored: { cacheIntervalSeconds: 69 }, name: "cacheIntervalSeconds" },
 			{ stored: { defaultPageSize: 69 }, name: "defaultPageSize" },
-			{ stored: { tagTooltips: true }, name: "tagTooltips" },
-			{ stored: { tagTooltips: false }, name: "tagTooltips" },
+			{ stored: { tagTooltips: !DEFAULT_SETTINGS.tagTooltips }, name: "tagTooltips" },
 			{ stored: { minRequestSeconds: 69 }, name: "minRequestSeconds" },
 			{ stored: { logLevel: LogLevel.Debug }, name: "logLevel" },
 			{ stored: { showPagination: !DEFAULT_SETTINGS.showPagination }, name: "showPagination" },
 			{ stored: { showRefresh: !DEFAULT_SETTINGS.showRefresh }, name: "showRefresh" },
+			{ stored: { showExternalLink: !DEFAULT_SETTINGS.showExternalLink }, name: "showExternalLink" },
 		])("should merge stored and default settings ($name)", async ({ stored }) => {
 			plugin = new GithubLinkPlugin(app, manifest);
 			mockedPlugin(plugin).data = { settings: stored };

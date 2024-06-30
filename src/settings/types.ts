@@ -20,6 +20,7 @@ export interface GithubLinkPluginSettings {
 	defaultPageSize: number;
 	showPagination: boolean;
 	showRefresh: boolean;
+	showExternalLink: boolean;
 	logLevel: LogLevel;
 	tagTooltips: boolean;
 	tagShowPRMergeable: boolean;
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
 	defaultPageSize: 10,
 	showPagination: true,
 	showRefresh: true,
+	showExternalLink: true,
 	logLevel: LogLevel.Error,
 	tagTooltips: false,
 	tagShowPRMergeable: false,

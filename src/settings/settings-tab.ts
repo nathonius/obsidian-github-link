@@ -96,6 +96,17 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
+			.setName("Show external link")
+			.setDesc("When using a custom query, an 'Open on GitHub' link can be added to view the results there.")
+			.addToggle((toggle) => {
+				toggle.setValue(PluginSettings.showExternalLink);
+				toggle.onChange((value) => {
+					PluginSettings.showExternalLink = value;
+					void this.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
 			.setName("Show refresh button")
 			.setDesc("Add a refresh button to tables to manually skip the cache.")
 			.addToggle((toggle) => {
