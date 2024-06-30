@@ -112,6 +112,7 @@ export function getIssuesForRepo(
 			since: true,
 			sort: (params) => issueListSortFromQuery(params),
 			state: true,
+			filter: true,
 		},
 		true,
 		true,
@@ -120,6 +121,40 @@ export function getIssuesForRepo(
 	setPageSize(listParams);
 
 	return api.listIssuesForRepo(org, repo, listParams, getToken(org), skipCache);
+}
+
+export function getIssuesForOrganization(
+	params: QueryParams,
+	org: string,
+	skipCache = false,
+): Promise<MaybePaginated<IssueListResponse>> {
+	const listParams = mapObject<QueryParams, IssueListParams>(
+		params,
+		{
+			assignee: true,
+			creator: true,
+			direction: true,
+			labels: (params) => {
+				if (Array.isArray(params.labels)) {
+					return params.labels.join(",");
+				}
+				return params.labels;
+			},
+			mentioned: true,
+			page: true,
+			per_page: true,
+			since: true,
+			sort: (params) => issueListSortFromQuery(params),
+			state: true,
+			filter: true,
+		},
+		true,
+		true,
+	);
+
+	setPageSize(listParams);
+
+	return api.listIssuesForOrganization(org, listParams, getToken(org), skipCache);
 }
 
 export function getPullRequest(
