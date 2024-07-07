@@ -60,38 +60,22 @@ export function getMyIssues(
 	if (!account?.token) {
 		return Promise.resolve({ meta: {}, response: [] });
 	}
-	const listParams = mapObject<QueryParams, IssueListParams>(
-		params,
-		{
-			assignee: true,
-			creator: true,
-			direction: true,
-			labels: (params) => {
-				if (Array.isArray(params.labels)) {
-					return params.labels.join(",");
-				}
-				return params.labels;
-			},
-			mentioned: true,
-			page: true,
-			per_page: true,
-			since: true,
-			sort: (params) => issueListSortFromQuery(params),
-			state: true,
-		},
-		true,
-		true,
-	);
 
-	setPageSize(listParams);
-
-	return api.listIssuesForToken(listParams, account.token, skipCache);
+	return api.listIssuesForToken(toIssueListParams(params), account.token, skipCache);
 }
 
 export function getIssuesForRepo(
 	params: QueryParams,
 	org: string,
 	repo: string,
+	skipCache = false,
+): Promise<MaybePaginated<IssueListResponse>> {
+	return api.listIssuesForRepo(org, repo, toIssueListParams(params), getToken(org), skipCache);
+}
+
+export function getIssuesForOrganization(
+	params: QueryParams,
+	org: string,
 	skipCache = false,
 ): Promise<MaybePaginated<IssueListResponse>> {
 	const listParams = mapObject<QueryParams, IssueListParams>(
@@ -112,6 +96,7 @@ export function getIssuesForRepo(
 			since: true,
 			sort: (params) => issueListSortFromQuery(params),
 			state: true,
+			filter: true,
 		},
 		true,
 		true,
@@ -119,7 +104,7 @@ export function getIssuesForRepo(
 
 	setPageSize(listParams);
 
-	return api.listIssuesForRepo(org, repo, listParams, getToken(org), skipCache);
+	return api.listIssuesForOrganization(org, listParams, getToken(org), skipCache);
 }
 
 export function getPullRequest(
@@ -214,4 +199,31 @@ export async function getPRForIssue(timelineUrl: string, org?: string): Promise<
 
 function setPageSize(params: { per_page?: number }): void {
 	params.per_page = params.per_page ?? PluginSettings.defaultPageSize;
+}
+
+function toIssueListParams(queryParams: QueryParams): IssueListParams {
+	const listParams = mapObject<QueryParams, IssueListParams>(
+		queryParams,
+		{
+			assignee: true,
+			creator: true,
+			direction: true,
+			labels: (params) => {
+				if (Array.isArray(params.labels)) {
+					return params.labels.join(",");
+				}
+				return params.labels;
+			},
+			mentioned: true,
+			page: true,
+			per_page: true,
+			since: true,
+			sort: (params) => issueListSortFromQuery(params),
+			state: true,
+		},
+		true,
+		true,
+	);
+	setPageSize(listParams);
+	return listParams;
 }
