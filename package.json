@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-github-link",
-	"version": "0.7.2",
+	"version": "1.0.0",
 	"description": "An Obsidian plugin enriching notes with issue and pull request content from GitHub",
 	"main": "main.js",
 	"scripts": {

@@ -16,6 +16,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [1.0.0] - 2024-07-08
+
+🔥 First major version update!
+
+### Changed
+
+- Tables with multiple pages of results can now show a paginator to fetch other pages
+- Better caching for all request types
+- Support for new columns: labels, assignee
+- Query for issues from a given organization
+- ⚠️ BREAKING CHANGE: Plugin's GitHub API has changed; it was, and remains undocumented so use at your own risk
+- ⚠️ BREAKING CHANGE: Users on version 0.5.1 or earlier may lose their account configurations upon updating.
+
+### Fixed
+
+- _Much_ better inline tag behavior in live preview mode! ⚡ No more stuck tags, and tags will not render inside code blocks.
+- Author and assignee columns will not overflow their containers
+
 ## [0.7.2] - 2024-06-16
 
 ### Fixed
@@ -49,7 +67,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improvements in documentation of plugin settings
 - Added a new contributing document
 - Custom queries include a link to view the query results on GitHub
-
 
 ## [0.5.1] - 2024-03-16
 
@@ -110,6 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.0.0]: https://github.com/nathonius/obsidian-github-link/compare/0.7.2...1.0.0
 [0.7.2]: https://github.com/nathonius/obsidian-github-link/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/nathonius/obsidian-github-link/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/nathonius/obsidian-github-link/compare/0.6.0...0.7.0
