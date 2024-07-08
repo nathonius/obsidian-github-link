@@ -53,7 +53,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for info on contributing to the project.
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="http://nathan-smith.org"><img src="https://avatars.githubusercontent.com/u/4851889?v=4?s=100" width="100px;" alt="Nathan"/><br /><sub><b>Nathan</b></sub></a><br /><a href="#doc-nathonius" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://nathan-smith.org"><img src="https://avatars.githubusercontent.com/u/4851889?v=4?s=100" width="100px;" alt="Nathan"/><br /><sub><b>Nathan</b></sub></a><br /><a href="#doc-nathonius" title="Documentation">📖</a> <a href="#code-nathonius" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
