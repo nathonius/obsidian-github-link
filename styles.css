@@ -335,6 +335,10 @@ table.github-link-table {
 	align-items: center;
 }
 
+.github-link-table-author {
+	width: max-content;
+}
+
 .github-link-table-labels {
 	height: 100%;
 	flex-wrap: wrap;
