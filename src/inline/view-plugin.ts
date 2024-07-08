@@ -124,6 +124,17 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 				return false;
 			}
 
+			// Check if this is within an inline code span
+			let inInlineCode = false;
+			for (let i = 0; i < index; i++) {
+				if (input.charAt(i) === "`") {
+					inInlineCode = !inInlineCode;
+				}
+			}
+			if (inInlineCode) {
+				return false;
+			}
+
 			// Check for cursors / selections inside the widget
 			const overlap = view.state.selection.ranges.some((r) => {
 				if (r.from <= decorationFrom) {
