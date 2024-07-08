@@ -1,6 +1,6 @@
 import { editorLivePreviewField } from "obsidian";
+import type { DecorationSet, PluginValue, EditorView, ViewUpdate } from "@codemirror/view";
 import { Decoration, MatchDecorator, ViewPlugin, WidgetType } from "@codemirror/view";
-import type { DecorationSet, EditorView, PluginSpec, PluginValue, ViewUpdate } from "@codemirror/view";
 
 import type { GithubLinkPlugin } from "../plugin";
 import { createTag } from "./inline";
@@ -9,82 +9,122 @@ interface DecoSpec {
 	widget?: InlineTagWidget;
 }
 
+/**
+ * CodeMirror widget that replaces the text via Decoration
+ * This should be kept as simple as possible; logic on whether
+ * or not to render the widget is part of the view plugin
+ */
 class InlineTagWidget extends WidgetType {
-	public error = false;
-	private container: HTMLElement = createSpan();
-	constructor(
-		public readonly href: string,
-		dispatch: () => void,
-	) {
+	public readonly href: string;
+	constructor(public readonly match: RegExpExecArray) {
 		super();
-		const tag = createTag(href);
-		this.container.appendChild(tag);
+		this.href = match[0];
 	}
 
-	eq(widget: WidgetType): boolean {
-		return (widget as InlineTagWidget).href === this.href;
+	eq(other: WidgetType): boolean {
+		return other instanceof InlineTagWidget && other.href === this.href;
 	}
 
 	toDOM(): HTMLElement {
-		return this.container;
+		const container = createSpan();
+		const tag = createTag(this.href);
+		container.appendChild(tag);
+		return container;
 	}
 }
 
 export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 	class InlineViewPluginValue implements PluginValue {
-		public readonly view: EditorView;
-		private readonly match = new MatchDecorator({
+		/**
+		 * State for parsing content of a file for code blocks
+		 */
+		public lastMatchEnd: number = 0;
+		public inCodeblock = false;
+
+		public inlineTags: DecorationSet = Decoration.none;
+
+		private readonly matcher = new MatchDecorator({
 			regexp: /(https:\/\/)?github\.com\S+/g,
-			decorate: (add, from, to, match, view) => {
-				const shouldRender = this.shouldRender(view, from, to, match);
-				if (shouldRender) {
-					add(
-						from,
-						to,
-						Decoration.replace({
-							widget: new InlineTagWidget(match[0], view.dispatch),
-						}),
-					);
-				}
+			decorate: (add, from, to, match, _view) => {
+				add(
+					from,
+					to,
+					Decoration.replace({
+						widget: new InlineTagWidget(match),
+					}),
+				);
 			},
 		});
-		decorations: DecorationSet = Decoration.none;
-		constructor(view: EditorView) {
-			this.view = view;
-			this.updateDecorations(view);
+
+		constructor(private readonly view: EditorView) {
+			this.inlineTags = this.matcher.createDeco(view);
 		}
 
 		update(update: ViewUpdate): void {
-			this.updateDecorations(update.view, update);
+			this.inlineTags = this.matcher.updateDeco(update, this.inlineTags);
 		}
 
 		destroy(): void {
-			this.decorations = Decoration.none;
+			this.inlineTags = Decoration.none;
 		}
 
-		updateDecorations(view: EditorView, update?: ViewUpdate) {
-			if (!update || this.decorations.size === 0) {
-				this.decorations = this.match.createDeco(view);
-			} else {
-				this.decorations = this.match.updateDeco(update, this.decorations);
+		isLivePreview(): boolean {
+			return this.view.state.field(editorLivePreviewField);
+		}
+
+		/**
+		 * Check if the decoration at the given position, with the given match, should render
+		 */
+		shouldRender(decorationFrom: number, decorationTo: number, match: RegExpMatchArray): boolean {
+			const view = this.view;
+
+			// Bail if it's not live preview mode
+			if (!this.isLivePreview()) {
+				return false;
 			}
-		}
 
-		isLivePreview(state: EditorView["state"]): boolean {
-			return state.field(editorLivePreviewField);
-		}
+			// Check if we're in a codeblock
+			// Note, codeblock check is more expensive than some others,
+			// But we do it first to ensure this.inCodeblock remains accurate
+			const lastLine = view.state.doc.lineAt(this.lastMatchEnd).number;
+			let currentLine = view.state.doc.lineAt(decorationFrom).number;
+			while (currentLine >= lastLine) {
+				const line = view.state.doc.line(currentLine);
+				/**
+				 * This is somewhat naive; a four tick codeblock ````
+				 * that contains a three tick codeblock ``` will be treated
+				 * as ```` open, ``` close, which is not correct, and can
+				 * lead to rendering tags where we shouldn't. This could be
+				 * fixed with a more complex notion of "inCodeblock", keeping
+				 * track of not just the last fence but also the fence content
+				 * so we can treat any three tick fences as not changing the
+				 * state if they follow a four tick fence, for example.
+				 *
+				 * However, there may also be a better way to keep track of
+				 * open / close fences. See this example, but it didn't work
+				 * for me:
+				 * https://github.com/OlegWock/obsidian-emera/blob/master/src/processors/block-jsx-processor.ts#L26
+				 */
+				if (line.text.trim().startsWith("```")) {
+					this.inCodeblock = !this.inCodeblock;
+				}
+				currentLine = line.number - 1;
+			}
 
-		shouldRender(view: EditorView, decorationFrom: number, decorationTo: number, match: RegExpMatchArray) {
+			if (this.inCodeblock) {
+				return false;
+			}
+
 			// Ignore matches inside a markdown link
+			// TODO: This could probably be a regex.
 			const input = match.input ?? "";
 			const index = match.index ?? 0;
 			const matchValue = match[0];
-			// eslint-disable-next-line unused-imports/no-unused-vars
-			const endIndex = index + matchValue.length;
 			if (input[index - 1] === "(" && matchValue.endsWith(")")) {
 				return false;
 			}
 
+			// Check for cursors / selections inside the widget
 			const overlap = view.state.selection.ranges.some((r) => {
 				if (r.from <= decorationFrom) {
 					return r.to >= decorationFrom;
@@ -92,41 +132,29 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 					return r.from <= decorationTo;
 				}
 			});
-			return !overlap && this.isLivePreview(view.state);
+			if (overlap) {
+				return false;
+			}
+
+			return true;
 		}
 	}
 
-	const InlineViewPluginSpec: PluginSpec<InlineViewPluginValue> = {
-		decorations: (plugin) => {
-			// Update and return decorations for the CodeMirror view
+	return ViewPlugin.fromClass(InlineViewPluginValue, {
+		decorations: (instance) => {
+			// Set initial state for code block search
+			instance.lastMatchEnd = 0;
+			instance.inCodeblock = false;
 
-			return plugin.decorations.update({
-				filter: (rangeFrom, rangeTo, deco) => {
-					const widget = (deco.spec as DecoSpec).widget;
-					if (widget && widget.error) {
-						return false;
-					}
-					// Check if the range is collapsed (cursor position)
-					return (
-						rangeFrom === rangeTo ||
-						// Check if there are no overlapping selection ranges
-						!plugin.view.state.selection.ranges.filter((selectionRange) => {
-							// Determine the start and end positions of the selection range
-							const selectionStart = selectionRange.from;
-							const selectionEnd = selectionRange.to;
-
-							// Check if the selection range overlaps with the specified range
-							if (selectionStart <= rangeFrom) {
-								return selectionEnd >= rangeFrom; // Overlapping condition
-							} else {
-								return selectionStart <= rangeTo; // Overlapping condition
-							}
-						}).length
-					);
+			// Filter all potential decorations
+			return instance.inlineTags.update({
+				filter: (from, to, deco) => {
+					const spec = deco.spec as DecoSpec;
+					const shouldRender = !spec.widget || instance.shouldRender(from, to, spec.widget.match);
+					instance.lastMatchEnd = to;
+					return shouldRender;
 				},
 			});
 		},
-	};
-
-	return ViewPlugin.fromClass(InlineViewPluginValue, InlineViewPluginSpec);
+	});
 }
