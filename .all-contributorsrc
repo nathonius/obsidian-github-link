@@ -16,6 +16,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "agriffis",
+      "name": "Aron Griffis",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50637?v=4",
+      "profile": "https://arongriffis.com",
+      "contributions": [
+        "code"
+      ]
     }
   ]
 }
