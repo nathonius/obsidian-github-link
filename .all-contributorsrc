@@ -25,6 +25,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "nikclayton",
+      "name": "Nik Clayton",
+      "avatar_url": "https://avatars.githubusercontent.com/u/773100?v=4",
+      "profile": "https://github.com/nikclayton",
+      "contributions": [
+        "bug"
+      ]
     }
   ]
 }
