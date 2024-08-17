@@ -44,7 +44,7 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 		public inlineTags: DecorationSet = Decoration.none;
 
 		private readonly matcher = new MatchDecorator({
-			regexp: /(https:\/\/)?github\.com\S+/g,
+			regexp: /(?<!\[.*?\]\()https:\/\/github\.com\/[^\s,.)]+/g,
 			decorate: (add, from, to, match, _view) => {
 				add(
 					from,
