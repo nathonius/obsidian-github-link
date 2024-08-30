@@ -8,14 +8,18 @@ import { RequestError } from "../util";
 import { parseUrl } from "../github/url-parse";
 import type { ParsedUrl } from "../github/url-parse";
 import { getIssue, getPullRequest } from "../github/github";
+import { isAllowedPath } from "../github/urls";
 
 interface TagConfig {
 	icon: HTMLSpanElement;
 	sections: HTMLElement[];
 }
 
-export function createTag(href: string): HTMLAnchorElement {
+export function createTag(href: string): HTMLAnchorElement | null {
 	const parsedUrl = parseUrl(href);
+	if (!parsedUrl) {
+		return null;
+	}
 	const container = createEl("a", { cls: "github-link-inline", href, attr: { target: "_blank" } });
 	const config: TagConfig = {
 		icon: createSpan({ cls: ["github-link-status-icon", "github-link-inline-icon"] }),
@@ -162,11 +166,17 @@ function createErrorSection(config: TagConfig, container: HTMLAnchorElement, err
 }
 
 export function InlineRenderer(el: HTMLElement) {
-	const githubLinks = el.querySelectorAll<HTMLAnchorElement>(`a.external-link[href^="https://github.com"]`);
+	let githubLinks = Array.from(el.querySelectorAll<HTMLAnchorElement>(`a.external-link[href^="https://github.com"]`));
+
+	// Filter out some special URLs from github
+	githubLinks = githubLinks.filter((l) => isAllowedPath(l.href));
+
 	for (const anchor of Array.from(githubLinks)) {
 		if (anchor.href === anchor.innerText) {
 			const container = createTag(anchor.href);
-			anchor.replaceWith(container);
+			if (container) {
+				anchor.replaceWith(container);
+			}
 		}
 	}
 }

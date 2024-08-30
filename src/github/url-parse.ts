@@ -1,3 +1,5 @@
+import { logger } from "../plugin";
+
 export interface ParsedUrl {
 	url: string;
 	host: string;
@@ -18,7 +20,7 @@ export function repoAPIToBrowserUrl(urlString: string): string {
 	return urlString.replace(apiRegex, "https://github.com/");
 }
 
-export function parseUrl(urlString: string): ParsedUrl {
+export function parseUrl(urlString: string): ParsedUrl | null {
 	// Some potential URLs:
 	// https://github.com/nathonius/alloy-theme
 	// https://github.com/nathonius/obsidian-trello/issues/45
@@ -28,7 +30,14 @@ export function parseUrl(urlString: string): ParsedUrl {
 	// https://github.com/nathonius/obsidian-trello/blob/markdown/src/constants.ts#L44-L58
 	// https://github.com/nathonius/obsidian-trello/commit/7ea069dd0641441ec20fb194f50e746a21abbaf1
 	// https://github.com/nathonius/obsidian-trello/commit/7ea069dd0641441ec20fb194f50e746a21abbaf1#diff-8fa4b52909f895e8cda060d2035234e0a42ca2c7d3f8f8de1b35a056537bf199R35
-	const url = new URL(urlString);
+	let url: URL;
+
+	try {
+		url = new URL(urlString);
+	} catch (err) {
+		logger.error(`Attempted and failed to parse invalid URL: ${urlString}`);
+		return null;
+	}
 	const parsedUrl: ParsedUrl = { url: urlString, host: url.hostname };
 
 	const urlParts = url.pathname.split("/");
