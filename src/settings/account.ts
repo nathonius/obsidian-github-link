@@ -90,7 +90,7 @@ export class AccountSettings {
 				text.setValue(this.newAccount!.clientId ?? "");
 				text.setPlaceholder("Client ID");
 				text.onChange((value) => {
-					this.newAccount!.clientId = value;
+					this.newAccount!.clientId = value.trim();
 				});
 			});
 		}
@@ -120,7 +120,7 @@ export class AccountSettings {
 				text.setPlaceholder("Personal Access Token / OAuth Token");
 				text.setValue(this.newAccount!.token);
 				text.onChange((value) => {
-					this.newAccount!.token = value;
+					this.newAccount!.token = value.trim();
 				});
 			});
 
@@ -195,7 +195,7 @@ export class AccountSettings {
 				text.setValue(account.clientId ?? "");
 				text.setPlaceholder("Client ID");
 				text.onChange((value) => {
-					account.clientId = value;
+					account.clientId = value.trim();
 					void this.saveCallback();
 				});
 			});
@@ -227,7 +227,7 @@ export class AccountSettings {
 				text.setPlaceholder("Personal Access Token / OAuth Token");
 				text.setValue(account.token);
 				text.onChange((value) => {
-					account.token = value;
+					account.token = value.trim();
 					void this.saveCallback();
 				});
 			});
