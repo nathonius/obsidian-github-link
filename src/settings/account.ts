@@ -103,7 +103,11 @@ export class AccountSettings {
 			.addButton((button) => {
 				button.setButtonText("Generate Token");
 				button.onClick(async () => {
-					const authResult = await auth(this.tokenVerification.bind(this))({
+					const clientId = this.newAccount?.customOAuth ? this.newAccount.clientId : undefined;
+					const authResult = await auth(
+						this.tokenVerification.bind(this),
+						clientId,
+					)({
 						type: "oauth",
 					});
 					this.authModal?.close();
