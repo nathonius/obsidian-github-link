@@ -3,6 +3,7 @@ import type { DecorationSet, PluginValue, EditorView, ViewUpdate } from "@codemi
 import { Decoration, MatchDecorator, ViewPlugin, WidgetType } from "@codemirror/view";
 
 import type { GithubLinkPlugin } from "../plugin";
+import { isAllowedPath } from "../github/urls";
 import { createTag } from "./inline";
 
 interface DecoSpec {
@@ -28,7 +29,9 @@ class InlineTagWidget extends WidgetType {
 	toDOM(): HTMLElement {
 		const container = createSpan();
 		const tag = createTag(this.href);
-		container.appendChild(tag);
+		if (tag) {
+			container.appendChild(tag);
+		}
 		return container;
 	}
 }
@@ -83,6 +86,11 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 				return false;
 			}
 
+			// Check if it's not an allowed URL
+			if (!isAllowedPath(match[0])) {
+				return false;
+			}
+
 			// Check if we're in a codeblock
 			// Note, codeblock check is more expensive than some others,
 			// But we do it first to ensure this.inCodeblock remains accurate
@@ -116,7 +124,7 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 			}
 
 			// Ignore matches inside a markdown link
-			// TODO: This could probably be a regex.
+			// TODO: This can probably be removed now that the regex is updated
 			const input = match.input ?? "";
 			const index = match.index ?? 0;
 			const matchValue = match[0];

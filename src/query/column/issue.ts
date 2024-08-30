@@ -36,7 +36,9 @@ export const IssueColumns: ColumnsMap = {
 				return;
 			}
 			const tag = createTag(pullRequestUrl);
-			el.appendChild(tag);
+			if (tag) {
+				el.appendChild(tag);
+			}
 		},
 	},
 };

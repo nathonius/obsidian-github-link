@@ -57,7 +57,7 @@ export const CommonIssuePRColumns: ColumnsMap = {
 			el.classList.add("github-link-table-repo");
 			const url = repoAPIToBrowserUrl((row as IssueListResponse[number]).repository_url);
 			const parsed = parseUrl(url);
-			el.createEl("a", { text: parsed.repo, href: url, attr: { target: "_blank" } });
+			el.createEl("a", { text: parsed?.repo ?? "Repo", href: url, attr: { target: "_blank" } });
 		},
 	},
 	author: {
