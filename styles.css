@@ -176,6 +176,14 @@ body.theme-dark {
 	overflow: hidden;
 }
 
+.github-link-inline-section:first-child {
+	border-radius: 3.5px 0 0 3.5px;
+}
+
+.github-link-inline-section:last-child {
+	border-radius: 0 3.5px 3.5px 0;
+}
+
 .github-link-inline-icon {
 	display: inline-flex;
 	padding: 2px 0;
