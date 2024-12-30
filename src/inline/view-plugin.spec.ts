@@ -1,4 +1,4 @@
-import { expect, jest, test, describe, beforeEach } from "@jest/globals";
+import { expect, test, describe } from "@jest/globals";
 import { matchRegexp } from './view-plugin';
 
 // Some potential URLs:
@@ -63,7 +63,7 @@ describe('matchRegexp', () => {
     GITHUB_URLS.forEach(url => {
       const text = `Some text
       ${url}
-      more text`;
+      more text.`;
       const match = text.match(matchRegexp);
       expect(match).not.toBeNull();
       expect(match![0]).toBe(url);
