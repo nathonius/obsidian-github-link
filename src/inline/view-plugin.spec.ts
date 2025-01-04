@@ -67,6 +67,15 @@ describe('matchRegexp', () => {
       const match = text.match(matchRegexp);
       expect(match).not.toBeNull();
       expect(match![0]).toBe(url);
+    });
+  });
+
+  test('matches URLs in text followed by another text', () => {
+    GITHUB_URLS.forEach(url => {
+      const text = `${url} is a cool plugin`;
+      const match = text.match(matchRegexp);
+      expect(match).not.toBeNull();
+      expect(match![0]).toBe(url);
     })
   });
 });
