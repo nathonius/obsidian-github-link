@@ -36,7 +36,7 @@ class InlineTagWidget extends WidgetType {
 	}
 }
 
-export const matchRegexp = /(?<!]\()https:\/\/github\.com\/([A-z\d\-_~+#%&=*@?/]*)(\.[^.\s]+)?/g
+export const matchRegexp = /(?<!]\()https:\/\/github\.com\/[^\s]+(?<!['\".\?,:;]+)/g
 
 export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 	class InlineViewPluginValue implements PluginValue {
