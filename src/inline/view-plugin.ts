@@ -36,6 +36,8 @@ class InlineTagWidget extends WidgetType {
 	}
 }
 
+export const matchRegexp = /(?<!]\()https:\/\/github\.com\/[^\s]+(?<!['".?,:;]+)/g;
+
 export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 	class InlineViewPluginValue implements PluginValue {
 		/**
@@ -47,7 +49,7 @@ export function createInlineViewPlugin(_plugin: GithubLinkPlugin) {
 		public inlineTags: DecorationSet = Decoration.none;
 
 		private readonly matcher = new MatchDecorator({
-			regexp: /(?<!\[.*?\]\()https:\/\/github\.com\/[^\s,.)]+/g,
+			regexp: matchRegexp,
 			decorate: (add, from, to, match, _view) => {
 				add(
 					from,
