@@ -53,9 +53,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for info on contributing to the project.
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="http://nathan-smith.org"><img src="https://avatars.githubusercontent.com/u/4851889?v=4?s=100" width="100px;" alt="Nathan"/><br /><sub><b>Nathan</b></sub></a><br /><a href="https://github.com/nathonius/obsidian-github-link/commits?author=nathonius" title="Code">💻</a> <a href="https://github.com/nathonius/obsidian-github-link/commits?author=nathonius" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://arongriffis.com"><img src="https://avatars.githubusercontent.com/u/50637?v=4?s=100" width="100px;" alt="Aron Griffis"/><br /><sub><b>Aron Griffis</b></sub></a><br /><a href="https://github.com/nathonius/obsidian-github-link/commits?author=agriffis" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/nikclayton"><img src="https://avatars.githubusercontent.com/u/773100?v=4?s=100" width="100px;" alt="Nik Clayton"/><br /><sub><b>Nik Clayton</b></sub></a><br /><a href="https://github.com/nathonius/obsidian-github-link/issues?q=author%3Anikclayton" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://nathan-smith.org"><img src="https://avatars.githubusercontent.com/u/4851889?v=4?s=100" width="100px;" alt="Nathan"/><br /><sub><b>Nathan</b></sub></a><br /><a href="#code-nathonius" title="Code">💻</a> <a href="#doc-nathonius" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://arongriffis.com"><img src="https://avatars.githubusercontent.com/u/50637?v=4?s=100" width="100px;" alt="Aron Griffis"/><br /><sub><b>Aron Griffis</b></sub></a><br /><a href="#code-agriffis" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/nikclayton"><img src="https://avatars.githubusercontent.com/u/773100?v=4?s=100" width="100px;" alt="Nik Clayton"/><br /><sub><b>Nik Clayton</b></sub></a><br /><a href="#bug-nikclayton" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://tech.dreamleaves.org"><img src="https://avatars.githubusercontent.com/u/1074760?v=4?s=100" width="100px;" alt="Arnaud 'red' Rouyer"/><br /><sub><b>Arnaud 'red' Rouyer</b></sub></a><br /><a href="#code-joshleaves" title="Code">💻</a> <a href="#test-joshleaves" title="Tests">⚠️</a></td>
     </tr>
   </tbody>
 </table>
