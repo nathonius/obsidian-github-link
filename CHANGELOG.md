@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [1.1.0] - 2025-02-26
+
+### Changed
+
+- Show rich metadata about filenames in links
+- A manual input for all slider settings that allows settings outside of the normal bounds
+
 ## [1.0.3] - 2025-01-19
 
 ### Fixed
@@ -141,6 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.1.0]: https://github.com/nathonius/obsidian-github-link/compare/1.0.3...1.1.0
 [1.0.3]: https://github.com/nathonius/obsidian-github-link/compare/1.0.2...1.0.3
 [1.0.2]: https://github.com/nathonius/obsidian-github-link/compare/1.0.0...1.0.2
 [1.0.0]: https://github.com/nathonius/obsidian-github-link/compare/0.7.2...1.0.0
