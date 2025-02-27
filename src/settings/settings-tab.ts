@@ -83,13 +83,20 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 			})
 			.addSlider((slider) => {
-				const displayValue = createSpan({ text: PluginSettings.defaultPageSize.toString() });
-				slider.sliderEl.parentElement?.prepend(displayValue);
+				const manualInput = createEl("input", { attr: { type: "number" }, cls: "github-link-slider-input" });
+				manualInput.value = PluginSettings.defaultPageSize.toString();
+				manualInput.addEventListener("change", (e) => {
+					const value = parseInt((e.target as HTMLInputElement).value, 10);
+					PluginSettings.defaultPageSize = value;
+					slider.setValue(value);
+					void this.saveSettings();
+				});
+				slider.sliderEl.parentElement?.prepend(manualInput);
 				slider.setLimits(0, 30, 1);
 				slider.setDynamicTooltip();
 				slider.setValue(PluginSettings.defaultPageSize);
 				slider.onChange((value) => {
-					displayValue.setText(value.toString());
+					manualInput.value = value.toString();
 					PluginSettings.defaultPageSize = value;
 					void this.saveSettings();
 				});
@@ -169,14 +176,21 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 			})
 			.addSlider((slider) => {
-				const displayValue = createSpan({ text: PluginSettings.cacheIntervalSeconds.toString() });
-				slider.sliderEl.parentElement?.prepend(displayValue);
+				const manualInput = createEl("input", { attr: { type: "number" }, cls: "github-link-slider-input" });
+				manualInput.value = PluginSettings.cacheIntervalSeconds.toString();
+				manualInput.addEventListener("change", (e) => {
+					const value = parseInt((e.target as HTMLInputElement).value, 10);
+					PluginSettings.cacheIntervalSeconds = value;
+					slider.setValue(value);
+					void this.saveSettings();
+				});
+				slider.sliderEl.parentElement?.prepend(manualInput);
 				slider.setValue(PluginSettings.cacheIntervalSeconds);
 				slider.setLimits(10, 1200, 10);
 				slider.setDynamicTooltip();
 				slider.onChange(async (value) => {
 					PluginSettings.cacheIntervalSeconds = value;
-					displayValue.setText(value.toString());
+					manualInput.value = value.toString();
 					await this.saveSettings();
 					this.plugin.setCacheInterval();
 				});
@@ -197,14 +211,21 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 			})
 			.addSlider((slider) => {
-				const displayValue = createSpan({ text: PluginSettings.maxCacheAgeHours.toString() });
-				slider.sliderEl.parentElement?.prepend(displayValue);
+				const manualInput = createEl("input", { attr: { type: "number" }, cls: "github-link-slider-input" });
+				manualInput.value = PluginSettings.maxCacheAgeHours.toString();
+				manualInput.addEventListener("change", (e) => {
+					const value = parseInt((e.target as HTMLInputElement).value, 10);
+					PluginSettings.maxCacheAgeHours = value;
+					slider.setValue(value);
+					void this.saveSettings();
+				});
+				slider.sliderEl.parentElement?.prepend(manualInput);
 				slider.setValue(PluginSettings.maxCacheAgeHours);
 				slider.setLimits(0, 170, 10);
 				slider.setDynamicTooltip();
 				slider.onChange(async (value) => {
 					PluginSettings.maxCacheAgeHours = value;
-					displayValue.setText(value.toString());
+					manualInput.value = value.toString();
 					await this.saveSettings();
 				});
 			});
@@ -225,14 +246,21 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 			})
 			.addSlider((slider) => {
-				const displayValue = createSpan({ text: PluginSettings.minRequestSeconds.toString() });
-				slider.sliderEl.parentElement?.prepend(displayValue);
+				const manualInput = createEl("input", { attr: { type: "number" }, cls: "github-link-slider-input" });
+				manualInput.value = PluginSettings.minRequestSeconds.toString();
+				manualInput.addEventListener("change", (e) => {
+					const value = parseInt((e.target as HTMLInputElement).value, 10);
+					PluginSettings.minRequestSeconds = value;
+					slider.setValue(value);
+					void this.saveSettings();
+				});
+				slider.sliderEl.parentElement?.prepend(manualInput);
 				slider.setValue(PluginSettings.minRequestSeconds);
 				slider.setLimits(10, 1200, 10);
 				slider.setDynamicTooltip();
 				slider.onChange(async (value) => {
 					PluginSettings.minRequestSeconds = value;
-					displayValue.setText(value.toString());
+					manualInput.value = value.toString();
 					await this.saveSettings();
 				});
 			});
