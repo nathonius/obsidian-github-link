@@ -1,6 +1,6 @@
 import { setIcon } from "obsidian";
 import { IssueStatus, getIssueStatus, getPRStatus } from "../github/response";
-import { setIssueIcon, setPRIcon, setPRMergeableIcon } from "../icon";
+import { setFileIcon, setIssueIcon, setPRIcon, setPRMergeableIcon } from "../icon";
 
 import { PluginSettings } from "../plugin";
 import type { PullResponse } from "../github/response";
@@ -20,6 +20,7 @@ export function createTag(href: string): HTMLAnchorElement | null {
 	if (!parsedUrl) {
 		return null;
 	}
+
 	const container = createEl("a", { cls: "github-link-inline", href, attr: { target: "_blank" } });
 	const config: TagConfig = {
 		icon: createSpan({ cls: ["github-link-status-icon", "github-link-inline-icon"] }),
@@ -30,8 +31,8 @@ export function createTag(href: string): HTMLAnchorElement | null {
 	createOrgSection(config, parsedUrl);
 	createRepoSection(config, parsedUrl);
 
-	// Add issue OR pr
-	if (parsedUrl.issue !== undefined || parsedUrl.pr !== undefined) {
+	// Add issue OR pr OR file
+	if (parsedUrl.issue !== undefined || parsedUrl.pr !== undefined || parsedUrl.code !== undefined) {
 		// Remove org
 		const orgIndex = config.sections.findIndex((section) => section.classList.contains("github-link-inline-org"));
 		if (orgIndex !== -1) {
@@ -42,6 +43,8 @@ export function createTag(href: string): HTMLAnchorElement | null {
 			createIssueSection(config, parsedUrl, container);
 		} else if (parsedUrl.pr !== undefined) {
 			createPullRequestSection(config, parsedUrl, container);
+		} else if (parsedUrl.code !== undefined) {
+			createFileSection(config, parsedUrl, container);
 		}
 	}
 
@@ -137,6 +140,28 @@ function createPullRequestSection(config: TagConfig, parsedUrl: ParsedUrl, conta
 			.catch((err) => {
 				createErrorSection(config, container, err);
 			});
+	}
+}
+
+function createFileSection(config: TagConfig, parsedUrl: ParsedUrl, _container: HTMLAnchorElement) {
+	if (parsedUrl.code === undefined) {
+		return;
+	}
+	const fileContainer = createSpan({ cls: "github-link-inline-file" });
+	setFileIcon(config.icon);
+	config.sections.push(fileContainer);
+	if (parsedUrl.code.filename) {
+		fileContainer.setText(parsedUrl.code.filename);
+	} else if (parsedUrl.code.path) {
+		fileContainer.setText(parsedUrl.code.path);
+	}
+	if (PluginSettings.tagShowFileLineNumber && parsedUrl.code.line) {
+		fileContainer.appendChild(createSpan({ cls: "github-link-inline-file-line-number", text: parsedUrl.code.line }));
+	}
+	if (PluginSettings.tagShowFileBranchName && parsedUrl.code.branch) {
+		fileContainer.appendChild(
+			createSpan({ cls: "github-link-inline-file-branch", text: `(${parsedUrl.code.branch})` }),
+		);
 	}
 }
 

@@ -157,6 +157,28 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				});
 			});
 
+		new Setting(containerEl)
+			.setName("File branch name")
+			.setDesc("Append the branch name to links to an individual file inside a repo")
+			.addToggle((toggle) => {
+				toggle.setValue(PluginSettings.tagShowFileBranchName);
+				toggle.onChange((value) => {
+					PluginSettings.tagShowFileBranchName = value;
+					void this.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("File line number")
+			.setDesc("Append the line number (if provided) to links to an individual file inside a repo")
+			.addToggle((toggle) => {
+				toggle.setValue(PluginSettings.tagShowFileLineNumber);
+				toggle.onChange((value) => {
+					PluginSettings.tagShowFileLineNumber = value;
+					void this.saveSettings();
+				});
+			});
+
 		containerEl.createEl("h3", { text: "Cache settings" });
 
 		new Setting(containerEl)

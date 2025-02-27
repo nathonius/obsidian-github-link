@@ -277,11 +277,21 @@ body.theme-dark {
 }
 
 .github-link-inline-pr-title,
-.github-link-inline-issue-title {
+.github-link-inline-issue-title,
+.github-link-inline-file {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	text-wrap: nowrap;
 	line-height: var(--line-height-normal);
+}
+
+.github-link-inline-file {
+	display: flex;
+	gap: 2px;
+}
+.github-link-inline-file > .github-link-inline-file-line-number,
+.github-link-inline-file > .github-link-inline-file-branch {
+	color: var(--gh-color-fg-muted);
 }
 
 .github-link-table-wrapper {
