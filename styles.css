@@ -151,6 +151,10 @@ body.theme-dark {
 	padding-left: 2rem;
 }
 
+.github-link-slider-input {
+	width: 3rem;
+}
+
 .github-link-inline {
 	display: inline-flex;
 	background-color: var(--gh-color-canvas-default);
