@@ -12,6 +12,7 @@ const GITHUB_URLS = [
 	"https://github.com/nathonius/obsidian-github-link/blob/main/src/github/url-parse.ts",
 	"https://github.com/nathonius/obsidian-github-link/blob/main/src/inline/view-plugin.ts#L21",
 	"https://github.com/nathonius/obsidian-github-link/blob/main/src/inline/view-plugin.ts#L13-32",
+	"https://github.com/academicpages/academicpages.github.io",
 	// ISSUES
 	"https://github.com/nathonius/obsidian-github-link/issues",
 	"https://github.com/nathonius/obsidian-github-link/issues/156",
