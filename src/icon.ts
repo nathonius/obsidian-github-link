@@ -56,6 +56,10 @@ export function setIssueIcon(icon: HTMLElement, status: IssueStatus): void {
 	icon.dataset.status = status;
 }
 
+export function setFileIcon(icon: HTMLElement): void {
+	setIcon(icon, "file");
+}
+
 export function setPRMergeableIcon(icon: HTMLElement, mergeable: boolean): void {
 	if (PluginSettings.tagTooltips) {
 		icon.setAttribute("aria-label", PRMergeableText[`${mergeable}`]);

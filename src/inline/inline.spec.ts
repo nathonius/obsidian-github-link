@@ -7,6 +7,7 @@ const selectors = {
 	repo: ".github-link-inline-repo",
 	issueTitle: ".github-link-inline-issue-title",
 	prTitle: ".github-link-inline-pr-title",
+	file: ".github-link-inline-file",
 };
 
 describe("createTag", () => {
@@ -23,7 +24,7 @@ describe("createTag", () => {
 		expect(tag).toBeTruthy();
 		const org = tag?.querySelector(selectors.org) as HTMLSpanElement;
 		expect(org.innerText).toEqual(user);
-		[selectors.repo, selectors.issueTitle, selectors.prTitle].forEach((s) => {
+		[selectors.repo, selectors.issueTitle, selectors.prTitle, selectors.file].forEach((s) => {
 			expect(tag?.querySelector(s)).toBeFalsy();
 		});
 	});
@@ -38,7 +39,7 @@ describe("createTag", () => {
 		const repoEl = tag?.querySelector(selectors.repo) as HTMLSpanElement;
 		expect(org.innerText).toEqual(user);
 		expect(repoEl.innerText).toEqual(repo);
-		[selectors.issueTitle, selectors.prTitle].forEach((s) => {
+		[selectors.issueTitle, selectors.prTitle, selectors.file].forEach((s) => {
 			expect(tag?.querySelector(s)).toBeFalsy();
 		});
 	});

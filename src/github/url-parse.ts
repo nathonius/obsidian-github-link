@@ -10,6 +10,8 @@ export interface ParsedUrl {
 	code?: {
 		branch?: string;
 		path?: string;
+		filename?: string;
+		line?: string;
 	};
 	commit?: string;
 }
@@ -60,6 +62,8 @@ export function parseUrl(urlString: string): ParsedUrl | null {
 				if (urlParts[5]) {
 					const pathParts = urlParts.slice(5);
 					parsedUrl.code.path = pathParts.join("/");
+					parsedUrl.code.filename = pathParts.last();
+					parsedUrl.code.line = url.hash.slice(1);
 				}
 				break;
 			case "commit":

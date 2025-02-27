@@ -27,6 +27,8 @@ export interface GithubLinkPluginSettings {
 	logLevel: LogLevel;
 	tagTooltips: boolean;
 	tagShowPRMergeable: boolean;
+	tagShowFileBranchName: boolean;
+	tagShowFileLineNumber: boolean;
 	cacheIntervalSeconds: number;
 	maxCacheAgeHours: number;
 	minRequestSeconds: number;
@@ -41,6 +43,8 @@ export const DEFAULT_SETTINGS: GithubLinkPluginSettings = {
 	logLevel: LogLevel.Error,
 	tagTooltips: false,
 	tagShowPRMergeable: false,
+	tagShowFileBranchName: true,
+	tagShowFileLineNumber: true,
 	cacheIntervalSeconds: 60,
 	maxCacheAgeHours: 120,
 	minRequestSeconds: 60,
