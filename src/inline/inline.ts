@@ -98,17 +98,18 @@ function createIssueSection(config: TagConfig, parsedUrl: ParsedUrl, container: 
 	}
 	setIssueIcon(config.icon, IssueStatus.Open);
 	const issueContainer = createSpan({
-		cls: "github-link-inline-issue-title",
-		text: `${parsedUrl.issue}`,
+		cls: "github-link-inline-issue-title-section",
 	});
+	issueContainer.createSpan({ text: `#${parsedUrl.issue}`, cls: "github-link-inline-issue-number" });
 	config.sections.push(issueContainer);
 	if (parsedUrl.org && parsedUrl.repo) {
 		getIssue(parsedUrl.org, parsedUrl.repo, parsedUrl.issue)
 			.then((issue) => {
 				if (issue.title) {
+					const title = createSpan({ text: issue.title, cls: "github-link-inline-issue-title" });
+					issueContainer.prepend(title);
 					const status = getIssueStatus(issue);
 					setIssueIcon(config.icon, status);
-					issueContainer.setText(issue.title);
 				}
 			})
 			.catch((err) => {

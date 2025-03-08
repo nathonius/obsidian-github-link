@@ -278,14 +278,19 @@ body.theme-dark {
 
 .github-link-inline-pr-title,
 .github-link-inline-issue-title,
+.github-link-inline-issue-title-section,
 .github-link-inline-file {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	text-wrap: nowrap;
 	line-height: var(--line-height-normal);
 }
+.github-link-inline-issue-number {
+	color: var(--gh-color-fg-muted);
+}
 
-.github-link-inline-file {
+.github-link-inline-file,
+.github-link-inline-issue-title-section {
 	display: flex;
 	gap: 2px;
 }
