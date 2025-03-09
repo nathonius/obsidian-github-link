@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [1.2.0] - 2025-03-08
+
+### Changed
+
+- Issue number is always shown on a tag for an issue
+
 ## [1.1.0] - 2025-02-26
 
 ### Changed
@@ -148,6 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
+[1.2.0]: https://github.com/nathonius/obsidian-github-link/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/nathonius/obsidian-github-link/compare/1.0.3...1.1.0
 [1.0.3]: https://github.com/nathonius/obsidian-github-link/compare/1.0.2...1.0.3
 [1.0.2]: https://github.com/nathonius/obsidian-github-link/compare/1.0.0...1.0.2
