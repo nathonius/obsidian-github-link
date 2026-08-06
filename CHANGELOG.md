@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## Unreleased -->
 
+## [1.3.0] - 2026-07-06
+
+### Changed
+
+- GitHub tokens are stored securely in the Obsidian keychain. Thanks @jdevera!
+- Cache moved to IndexedDB store instead of bloating data.json. Thanks @jdevera!
+
 ## [1.2.0] - 2025-03-08
 
 ### Changed
