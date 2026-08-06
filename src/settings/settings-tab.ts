@@ -4,7 +4,7 @@ import { Notice, PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
 import type { GithubLinkPlugin } from "../plugin";
 import { LogLevel } from "../logger";
-import { PluginData, PluginSettings, getCache } from "../plugin";
+import { PluginSettings, getCache } from "../plugin";
 import { clearToken } from "../keychain";
 import type { GithubAccount } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
@@ -184,43 +184,6 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setClass("github-link-sub-setting")
-			.setName("Cache save interval (seconds)")
-			.setDesc(
-				"If it has been updated, cache will be saved to disk after this number of seconds while Obsidian is open.",
-			)
-			.addExtraButton((button) => {
-				button.setIcon("rotate-ccw");
-				button.setTooltip("Restore default");
-				button.onClick(async () => {
-					PluginSettings.cacheIntervalSeconds = DEFAULT_SETTINGS.cacheIntervalSeconds;
-					await this.saveSettings();
-					this.plugin.setCacheInterval();
-					this.display();
-				});
-			})
-			.addSlider((slider) => {
-				const manualInput = createEl("input", { attr: { type: "number" }, cls: "github-link-slider-input" });
-				manualInput.value = PluginSettings.cacheIntervalSeconds.toString();
-				manualInput.addEventListener("change", (e) => {
-					const value = parseInt((e.target as HTMLInputElement).value, 10);
-					PluginSettings.cacheIntervalSeconds = value;
-					slider.setValue(value);
-					void this.saveSettings();
-				});
-				slider.sliderEl.parentElement?.prepend(manualInput);
-				slider.setValue(PluginSettings.cacheIntervalSeconds);
-				slider.setLimits(10, 1200, 10);
-				slider.setDynamicTooltip();
-				slider.onChange(async (value) => {
-					PluginSettings.cacheIntervalSeconds = value;
-					manualInput.value = value.toString();
-					await this.saveSettings();
-					this.plugin.setCacheInterval();
-				});
-			});
-
-		new Setting(containerEl)
-			.setClass("github-link-sub-setting")
 			.setName("Max cache age (hours)")
 			.setDesc("Upon Obsidian startup, cache entries older than this many hours will be removed.")
 			.addExtraButton((button) => {
@@ -229,7 +192,6 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				button.onClick(async () => {
 					PluginSettings.maxCacheAgeHours = DEFAULT_SETTINGS.maxCacheAgeHours;
 					await this.saveSettings();
-					this.plugin.setCacheInterval();
 					this.display();
 				});
 			})
@@ -296,8 +258,7 @@ export class GithubLinkPluginSettingsTab extends PluginSettingTab {
 				button.setIcon("trash");
 				button.setButtonText("Clear cache");
 				button.onClick(async () => {
-					const itemsDeleted = getCache().clean(new Date());
-					PluginData.cache = null;
+					const itemsDeleted = await getCache().clean(new Date());
 					await this.saveSettings();
 					new Notice(`Removed ${itemsDeleted} stored items from GitHub Link cache.`, 3000);
 				});

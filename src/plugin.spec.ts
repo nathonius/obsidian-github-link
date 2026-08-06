@@ -1,12 +1,11 @@
-import { expect, jest, test, describe, beforeEach } from "@jest/globals";
-import type { RequestUrlResponse } from "obsidian";
+import { expect, jest, test, describe, beforeEach, afterEach } from "@jest/globals";
 import { App } from "obsidian";
 import type { PluginMock } from "../__mocks__/obsidian/Plugin";
 import * as manifest from "../manifest.json";
 import { GithubLinkPlugin, PluginData, PluginSettings, getCache } from "./plugin";
 import type { GithubLinkPluginSettings } from "./settings";
 import { DEFAULT_SETTINGS } from "./settings";
-import { CacheEntry, RequestCache } from "./github/cache";
+import { RequestCache } from "./github/cache";
 import { LogLevel } from "./logger";
 import { DATA_VERSION } from "./settings/types";
 
@@ -22,6 +21,13 @@ describe("GithubLinkPlugin", () => {
 
 	beforeEach(() => {
 		app = new App();
+	});
+
+	afterEach(() => {
+		// Close the cache DB connection so subsequent tests can open a fresh one
+		if (getCache()) {
+			getCache().close();
+		}
 	});
 
 	test("should create", () => {
@@ -42,7 +48,6 @@ describe("GithubLinkPlugin", () => {
 		expect(plugin.registerMarkdownPostProcessor).toHaveBeenCalled();
 		expect(plugin.registerEditorExtension).toHaveBeenCalled();
 		expect(plugin.registerMarkdownCodeBlockProcessor).toHaveBeenCalled();
-		expect(plugin.registerInterval).toHaveBeenCalled();
 	});
 
 	describe("loadData", () => {
@@ -50,28 +55,33 @@ describe("GithubLinkPlugin", () => {
 			plugin = new GithubLinkPlugin(app, manifest);
 			await plugin.onload();
 			expect(PluginData).toBeDefined();
-			expect(PluginData.cache).toEqual(null);
 			expect(PluginData.settings).toEqual(DEFAULT_SETTINGS);
 			expect(PluginData.dataVersion).toEqual(DATA_VERSION);
 		});
 
-		test("should load stored cache", async () => {
-			const cacheEntry = new CacheEntry(
-				{ url: "mock" },
-				{ json: "mock", headers: {} } as RequestUrlResponse,
-				new Date(),
-				null,
-				null,
-			);
+		test("should migrate stored cache from data.json to IndexedDB", async () => {
+			const now = new Date();
+			const cacheJson = JSON.stringify({
+				request: { url: "https://api.github.com/repos/test/test/issues/1" },
+				response: { json: { title: "mock" }, headers: {}, status: 200 },
+				retrieved: now.getTime(),
+				etag: null,
+				lastModified: null,
+			});
 			plugin = new GithubLinkPlugin(app, manifest);
-			mockedPlugin(plugin).data = { cache: [cacheEntry.toJSON()], dataVersion: DATA_VERSION };
+			mockedPlugin(plugin).data = { cache: [cacheJson], dataVersion: DATA_VERSION };
 			await plugin.onload();
-			expect(PluginData.cache).toEqual([cacheEntry.toJSON()]);
-			expect(getCache().get(cacheEntry.request)).toEqual(cacheEntry);
+
+			// Cache should be accessible
+			const entry = getCache().get({ url: "https://api.github.com/repos/test/test/issues/1" });
+			expect(entry).not.toBeNull();
+			expect(entry?.response.json).toEqual({ title: "mock" });
+
+			// data.json cache should be cleared
+			expect(PluginData.cache).toBeUndefined();
 		});
 
 		test.each<{ stored: Partial<GithubLinkPluginSettings>; name: string }>([
-			{ stored: { cacheIntervalSeconds: 69 }, name: "cacheIntervalSeconds" },
 			{ stored: { defaultPageSize: 69 }, name: "defaultPageSize" },
 			{ stored: { tagTooltips: !DEFAULT_SETTINGS.tagTooltips }, name: "tagTooltips" },
 			{ stored: { minRequestSeconds: 69 }, name: "minRequestSeconds" },

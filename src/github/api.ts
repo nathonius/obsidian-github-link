@@ -241,10 +241,10 @@ export class GitHubApi {
 
 			// Check for 304 response, return cached value
 			if (cachedValue?.response && response.status === 304) {
-				getCache().update(config);
+				await getCache().update(config);
 				return this.getPaginationMeta(cachedValue.response);
 			} else if (isSuccessResponse(response.status)) {
-				getCache().set(config, response);
+				await getCache().set(config, response);
 			}
 			// Handle rate limit
 			const retryAfterSeconds = parseInt(response.headers["retry-after"]);

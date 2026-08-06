@@ -134,7 +134,10 @@ const config = {
 	// runner: "jest-runner",
 
 	// The paths to modules that run some code to configure or set up the testing environment before each test
-	// setupFiles: [],
+	setupFiles: ["fake-indexeddb/auto", "<rootDir>/jest.setup.mjs"],
+
+	// Options that will be passed to the testEnvironment
+	// testEnvironmentOptions: {},
 
 	// A list of paths to modules that run some code to configure or set up the testing framework before each test
 	// setupFilesAfterEnv: [],

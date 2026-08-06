@@ -1,13 +1,28 @@
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
+import { openDB } from "idb";
+import type { DBSchema, IDBPDatabase } from "idb";
 import { logger } from "../plugin";
 import { isSuccessResponse, sanitizeObject } from "../util";
 
-interface CacheParams {
-	request: RequestUrlParam;
+const DB_NAME = "obsidian-github-link";
+const STORE_NAME = "request-cache";
+const DB_VERSION = 1;
+
+export interface CacheEntryData {
+	url: string;
+	requestBody?: string;
 	response: RequestUrlResponse;
 	retrieved: number;
 	etag: string | null;
 	lastModified: string | null;
+}
+
+interface CacheDB extends DBSchema {
+	[STORE_NAME]: {
+		key: string;
+		value: CacheEntryData;
+		indexes: { "by-retrieved": number };
+	};
 }
 
 export class CacheEntry {
@@ -19,11 +34,26 @@ export class CacheEntry {
 		public readonly lastModified: string | null,
 	) {}
 
+	public static fromStored(data: CacheEntryData): CacheEntry {
+		return new CacheEntry(
+			{ url: data.url, body: data.requestBody },
+			data.response,
+			new Date(data.retrieved),
+			data.etag,
+			data.lastModified,
+		);
+	}
+
 	public static fromJSON(json: string): CacheEntry | null {
-		let result: CacheEntry | null = null;
 		try {
-			const parsed = JSON.parse(json) as CacheParams;
-			result = new CacheEntry(
+			const parsed = JSON.parse(json) as {
+				request: RequestUrlParam;
+				response: RequestUrlResponse;
+				retrieved: number;
+				etag: string | null;
+				lastModified: string | null;
+			};
+			return new CacheEntry(
 				parsed.request,
 				parsed.response,
 				new Date(parsed.retrieved),
@@ -33,57 +63,59 @@ export class CacheEntry {
 		} catch (err) {
 			logger.error("Failure reconstructing cache!");
 			logger.error(err);
+			return null;
 		}
-		return result;
 	}
 
-	public toJSON(): string {
-		const params: CacheParams = {
-			request: this.request,
+	public toStored(): CacheEntryData {
+		return {
+			url: this.request.url,
+			requestBody: this.request.body as string | undefined,
 			response: this.response,
 			retrieved: this.retrieved.getTime(),
 			etag: this.etag,
 			lastModified: this.lastModified,
 		};
-		return JSON.stringify(params);
 	}
 }
 
 /**
- * Cache of responses to simple, non-search requests
+ * Cache of responses to simple, non-search requests, backed by IndexedDB.
  */
 export class RequestCache {
-	public cacheUpdated = false;
-	private readonly entries: Record<string, CacheEntry> = {};
+	private db: IDBPDatabase<CacheDB> | null = null;
+	private memCache: Record<string, CacheEntry> = {};
 
-	constructor(storedCache: string[] | null) {
-		if (storedCache) {
-			try {
-				for (const entryString of storedCache) {
-					const entry = CacheEntry.fromJSON(entryString);
-					if (!entry) {
-						return;
-					}
-					this.entries[this.getCacheKey(entry.request)] = entry;
-				}
-			} catch (err) {
-				logger.warn("Could not read stored cache data, cache will be cleared.");
-				logger.warn(err);
-			}
+	/**
+	 * Open the IndexedDB database. Must be called before using the cache.
+	 */
+	public async init(): Promise<void> {
+		this.db = await openDB<CacheDB>(DB_NAME, DB_VERSION, {
+			upgrade(db) {
+				const store = db.createObjectStore(STORE_NAME, { keyPath: "url" });
+				store.createIndex("by-retrieved", "retrieved");
+			},
+		});
+
+		// Load all entries into memory for fast synchronous reads
+		const all = await this.db.getAll(STORE_NAME);
+		for (const data of all) {
+			this.memCache[data.url] = CacheEntry.fromStored(data);
 		}
 	}
 
+	/**
+	 * Synchronous read from in-memory cache.
+	 */
 	public get(request: RequestUrlParam): CacheEntry | null {
-		const entry: CacheEntry | null = this.entries[this.getCacheKey(request)] ?? null;
-		// Ensure headers are defined; some old cache entries might not have them
+		const entry: CacheEntry | null = this.memCache[this.getCacheKey(request)] ?? null;
 		if (entry && !entry.response.headers) {
 			entry.response.headers = {};
 		}
 		return entry;
 	}
 
-	public set(request: RequestUrlParam, response: RequestUrlResponse): void {
-		// Don't store bad responses
+	public async set(request: RequestUrlParam, response: RequestUrlResponse): Promise<void> {
 		if (!isSuccessResponse(response.status)) {
 			logger.warn(`Attempted to cache a non-successful request: ${request.url}`);
 			return;
@@ -92,7 +124,6 @@ export class RequestCache {
 		const etag = response.headers.etag ?? null;
 		const lastModified = response.headers["last-modified"] ?? null;
 
-		// Slim down the data we store
 		const _request: Partial<RequestUrlParam> = { url: request.url, body: request.body };
 		const _response: Partial<RequestUrlResponse> = {
 			json: response.json,
@@ -107,45 +138,69 @@ export class RequestCache {
 			etag,
 			lastModified,
 		);
-		this.entries[this.getCacheKey(request)] = entry;
-		this.cacheUpdated = true;
+
+		const key = this.getCacheKey(request);
+		this.memCache[key] = entry;
+		await this.db?.put(STORE_NAME, entry.toStored());
 	}
 
-	public remove(request: RequestUrlParam | string): void {
-		if (typeof request === "string") {
-			delete this.entries[request];
-		} else {
-			delete this.entries[this.getCacheKey(request)];
-		}
-		this.cacheUpdated = true;
+	public async remove(request: RequestUrlParam | string): Promise<void> {
+		const key = typeof request === "string" ? request : this.getCacheKey(request);
+		delete this.memCache[key];
+		await this.db?.delete(STORE_NAME, key);
 	}
 
-	public clean(maxAge: Date): number {
+	public async clean(maxAge: Date): Promise<number> {
 		let entriesDeleted = 0;
-		for (const [k, v] of Object.entries(this.entries)) {
+		const keysToDelete: string[] = [];
+
+		for (const [k, v] of Object.entries(this.memCache)) {
 			if (v.retrieved < maxAge) {
-				delete this.entries[k];
-				entriesDeleted += 1;
+				keysToDelete.push(k);
 			}
 		}
+
+		for (const key of keysToDelete) {
+			delete this.memCache[key];
+			await this.db?.delete(STORE_NAME, key);
+			entriesDeleted += 1;
+		}
+
 		return entriesDeleted;
 	}
 
-	public update(request: RequestUrlParam | string): void {
-		let entry: CacheEntry | null = null;
-		if (typeof request === "string") {
-			entry = this.entries[request];
-		} else {
-			entry = this.entries[this.getCacheKey(request)];
-		}
+	public async update(request: RequestUrlParam | string): Promise<void> {
+		const key = typeof request === "string" ? request : this.getCacheKey(request);
+		const entry = this.memCache[key];
 		if (entry) {
 			entry.retrieved = new Date();
+			await this.db?.put(STORE_NAME, entry.toStored());
 		}
-		this.cacheUpdated = true;
 	}
 
-	public toJSON(): string[] {
-		return Object.values(this.entries).map((e) => e.toJSON());
+	/**
+	 * Import entries from the old JSON-based cache (data.json migration).
+	 */
+	public async importFromJSON(storedCache: string[]): Promise<number> {
+		let imported = 0;
+		for (const entryString of storedCache) {
+			const entry = CacheEntry.fromJSON(entryString);
+			if (entry) {
+				const key = this.getCacheKey(entry.request);
+				this.memCache[key] = entry;
+				await this.db?.put(STORE_NAME, entry.toStored());
+				imported += 1;
+			}
+		}
+		return imported;
+	}
+
+	/**
+	 * Close the IndexedDB connection.
+	 */
+	public close(): void {
+		this.db?.close();
+		this.db = null;
 	}
 
 	private getCacheKey(request: RequestUrlParam): string {
