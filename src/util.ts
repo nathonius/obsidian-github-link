@@ -115,19 +115,16 @@ export function safeJSONParse<T>(value: string, props: Record<keyof T, boolean>)
 	// Handle parsing with try / catch
 	let parsed: T;
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		parsed = JSON.parse(value);
+		parsed = JSON.parse(value) as T;
 	} catch (err) {
 		return null;
 	}
 
 	// Validate object shape
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const result: any = {};
+	const result: Partial<Record<keyof T, unknown>> = {};
 	for (const [_prop, include] of Object.entries(props)) {
 		const prop = _prop as keyof T;
 		if (include && parsed[prop]) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			result[prop] = parsed[prop];
 		}
 	}
@@ -188,9 +185,7 @@ export class RequestError implements Error {
 		this.message = originalError.message;
 
 		// Request props
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-		this.headers = (originalError as any).headers;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-		this.status = (originalError as any).status;
+		this.headers = (originalError as RequestError).headers;
+		this.status = (originalError as RequestError).status;
 	}
 }

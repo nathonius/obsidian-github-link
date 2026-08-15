@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Notice, PluginSettingTab, Setting } from "obsidian";
 
 import type { App } from "obsidian";
