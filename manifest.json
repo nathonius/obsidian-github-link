@@ -3,7 +3,7 @@
 	"name": "GitHub Link",
 	"version": "1.3.0",
 	"minAppVersion": "1.11.4",
-	"description": "Enrich your notes with issue and pull request content from GitHub",
+	"description": "Enrich your notes with issue and pull request content from GitHub.",
 	"author": "Nathonius",
 	"authorUrl": "https://nathan-smith.org/",
 	"isDesktopOnly": false
